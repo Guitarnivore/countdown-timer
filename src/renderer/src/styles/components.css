@@ -107,7 +107,7 @@
   color: var(--ink);
   transition: color 200ms ease;
   user-select: none;
-  font-size: min(calc(100cqw / (var(--chars) * 0.6)), 62cqh);
+  font-size: min(calc(100cqw / (var(--chars) * 0.62)), 62cqh);
 }
 
 .is-paused .digits {
@@ -175,12 +175,70 @@
     background-color 200ms ease;
 }
 
-/* Controls */
-.controls-row {
+/* Keypad */
+.keypad {
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  background-color: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+}
+
+.keypad-preview {
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  font-size: 16px;
+  color: var(--ink-muted);
+  margin-bottom: var(--space-1);
+}
+
+.keypad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+}
+
+.keypad-key {
+  min-width: 44px;
+  min-height: 44px;
+  padding: var(--space-2);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--line);
+  background-color: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 400;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-2);
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
+}
+
+.keypad-key:hover:not(:disabled) {
+  border-color: var(--ink-muted);
+  background-color: var(--surface);
+}
+
+.keypad-key.double {
+  grid-column: span 1;
+  font-size: 14px;
+}
+
+.keypad-key.backspace {
+  font-size: 14px;
+  letter-spacing: -0.01em;
+}
+
+.keypad-key:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .control-button {
@@ -213,52 +271,18 @@
 }
 
 .control-button:focus-visible,
-.preset-button:focus-visible,
 .pin-button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
-/* Presets */
-.presets-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-1);
-}
-
-.preset-button {
-  min-width: 32px;
-  min-height: 32px;
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-control);
-  border: 1px solid var(--line);
-  background-color: var(--surface);
-  color: var(--ink-muted);
-  font-family: var(--font-sans);
-  font-size: 12px;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition:
-    color 120ms ease,
-    border-color 120ms ease;
-}
-
-.preset-button:hover:not(:disabled) {
-  color: var(--ink);
-  border-color: var(--ink-muted);
-}
-
-.preset-button.is-active {
-  color: var(--accent);
-  border-color: var(--accent);
-}
-
 /* Tiny mode hover overlay */
 .tiny-controls-strip {
   display: none;
+}
+
+.keypad-panel {
+  margin-top: var(--space-2);
 }
 
 /* ==========================================================================
@@ -272,6 +296,38 @@
 @container (max-width: 219px) or (max-height: 109px) {
   .header-bar {
     display: none;
+  }
+
+  .keypad-panel {
+    display: block;
+  }
+
+  .stage {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .keypad {
+    margin: var(--space-2) 0;
+  }
+
+  .keypad-grid {
+    grid-template-columns: repeat(3, 40px);
+    gap: var(--space-1);
+  }
+
+  .keypad-key {
+    min-width: 40px;
+    min-height: 40px;
+    font-size: 14px;
+  }
+
+  .keypad-key.double {
+    font-size: 12px;
+  }
+
+  .keypad-key.backspace {
+    font-size: 12px;
   }
 
   .presets-row {
@@ -299,7 +355,7 @@
   }
 
   .digits {
-    font-size: min(calc(96cqw / (var(--chars) * 0.6)), 62cqh);
+    font-size: min(calc(96cqw / (var(--chars) * 0.62)), 62cqh);
   }
 
   .progress-bar-track {
@@ -362,7 +418,7 @@
   }
 
   .digits {
-    font-size: min(calc(100cqw / (var(--chars) * 0.6)), 62cqh);
+font-size: min(calc(100cqw / (var(--chars) * 0.62)), 62cqh);
   }
 
   .progress-bar-track {

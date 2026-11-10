@@ -3,13 +3,13 @@ import { parseDigits } from './timer/format'
 import { useTimer } from './timer/useTimer'
 import { Controls } from './ui/Controls'
 import { Display } from './ui/Display'
-import { Presets } from './ui/Presets'
+import { Keypad } from './ui/Keypad'
 import { ProgressBar, ProgressRing } from './ui/ProgressRing'
 
 export default function App(): JSX.Element {
   const [isPinned, setIsPinned] = useState<boolean>(true)
   const [isEditing, setIsEditing] = useState<boolean>(false)
-  const [editBuffer, setEditBuffer] = useState<string>('')
+  const [keypadDigits, setKeypadDigits] = useState<string>('')
 
   const timer = useTimer({
     initialDurationMs: 5 * 60 * 1000
@@ -41,40 +41,29 @@ export default function App(): JSX.Element {
     }
   }, [isPinned])
 
-  const commitEdit = useCallback((): boolean => {
-    if (!isEditing) return false
-    const parsed = parseDigits(editBuffer)
+  const handleDigit = useCallback((digit: string): void => {
+    setKeypadDigits((prev) => (prev.length < 6 ? prev + digit : prev))
+  }, [])
+
+  const handleBackspace = useCallback((): void => {
+    setKeypadDigits((prev) => prev.slice(0, -1))
+  }, [])
+
+  const handleStart = useCallback((): void => {
+    const parsed = parseDigits(keypadDigits)
     if (parsed.ms > 0) {
       timer.setDuration(parsed.ms)
     }
     setIsEditing(false)
-    setEditBuffer('')
-    return parsed.ms > 0
-  }, [editBuffer, isEditing, timer])
-
-  const cancelEdit = useCallback((): void => {
-    setIsEditing(false)
-    setEditBuffer('')
-  }, [])
-
-  const handleSelectPreset = useCallback(
-    (durationMs: number): void => {
-      cancelEdit()
-      timer.setDuration(durationMs)
-    },
-    [cancelEdit, timer]
-  )
-
-  const handleStart = useCallback((): void => {
-    if (isEditing) {
-      const valid = commitEdit()
-      if (valid) {
-        timer.start()
-      }
-      return
-    }
+    setKeypadDigits('')
     timer.start()
-  }, [commitEdit, isEditing, timer])
+  }, [keypadDigits, timer])
+
+  const handleReset = useCallback((): void => {
+    timer.reset()
+    setIsEditing(false)
+    setKeypadDigits('')
+  }, [timer])
 
   // Global keyboard shortcuts (Space, R, P, Esc, digits)
   useEffect(() => {
@@ -101,8 +90,7 @@ export default function App(): JSX.Element {
 
       if (event.key === 'r' || event.key === 'R') {
         event.preventDefault()
-        cancelEdit()
-        timer.reset()
+        handleReset()
         return
       }
 
@@ -115,7 +103,8 @@ export default function App(): JSX.Element {
       if (event.key === 'Escape') {
         if (isEditing) {
           event.preventDefault()
-          cancelEdit()
+          setIsEditing(false)
+          setKeypadDigits('')
         }
         return
       }
@@ -132,22 +121,22 @@ export default function App(): JSX.Element {
         if (/^[0-9]$/.test(event.key)) {
           event.preventDefault()
           setIsEditing(true)
-          setEditBuffer((prev) => (prev.length < 6 ? prev + event.key : prev))
+          setKeypadDigits((prev) => (prev.length < 6 ? prev + event.key : prev))
         } else if (event.key === 'Backspace' && isEditing) {
           event.preventDefault()
-          setEditBuffer((prev) => prev.slice(0, -1))
+          setKeypadDigits((prev) => prev.slice(0, -1))
         }
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return (): void => window.removeEventListener('keydown', handleKeyDown)
-  }, [cancelEdit, handleStart, handleTogglePin, isEditing, timer])
+  }, [handleReset, handleStart, handleTogglePin, isEditing, timer])
 
   const isMac = typeof navigator !== 'undefined' && /mac/i.test(navigator.userAgent)
   const isWin = typeof navigator !== 'undefined' && /win/i.test(navigator.userAgent)
 
-  const parsedEdit = parseDigits(editBuffer)
+  const parsedEdit = parseDigits(keypadDigits)
   const canStart = timer.durationMs > 0 || (isEditing && parsedEdit.ms > 0)
 
   return (
@@ -185,7 +174,7 @@ export default function App(): JSX.Element {
             onStartEdit={() => {
               if (timer.status === 'idle') {
                 setIsEditing(true)
-                setEditBuffer('')
+                setKeypadDigits('')
               }
             }}
           />
@@ -197,23 +186,20 @@ export default function App(): JSX.Element {
           isFinished={timer.isFinished}
         />
 
+        {isEditing && timer.status === 'idle' ? (
+          <div className="keypad-panel">
+            <Keypad digits={keypadDigits} onDigit={handleDigit} onBackspace={handleBackspace} />
+          </div>
+        ) : null}
+
         <Controls
           status={timer.status}
           canStart={canStart}
           onStart={handleStart}
           onPause={timer.pause}
           onResume={timer.resume}
-          onReset={() => {
-            cancelEdit()
-            timer.reset()
-          }}
+          onReset={handleReset}
           onRestart={timer.restart}
-        />
-
-        <Presets
-          onSelectDuration={handleSelectPreset}
-          currentDurationMs={timer.durationMs}
-          disabled={timer.status === 'running'}
         />
 
         <Controls
@@ -223,10 +209,7 @@ export default function App(): JSX.Element {
           onStart={handleStart}
           onPause={timer.pause}
           onResume={timer.resume}
-          onReset={() => {
-            cancelEdit()
-            timer.reset()
-          }}
+          onReset={handleReset}
           onRestart={timer.restart}
         />
       </main>

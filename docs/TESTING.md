@@ -13,7 +13,7 @@ Write these before the implementation (Phase 1):
 - `reset` restores `durationMs` and idle status; works from every status.
 - Display rounding: remaining 1 ms shows `00:01`; 0 ms shows `00:00`; 59 999 ms shows `01:00`.
 - `formatRemaining`: `MM:SS` under one hour, `H:MM:SS` above; 99:59:59 is the max.
-- `parseDigits`: typing 1,2,0,0 gives 12:00; 1,0,0,0,0 gives 1:00:00; more than 6 digits ignored; leading zeros handled; overflow clamps to 99:59:59.
+- `parseDigits`: Google Clock keypad input shifts seconds, then minutes, then hours (typing 5,0 gives 50s; 5,0,0 gives 5:00; 1,2,0,0 gives 12:00; 1,0,0,0,0 gives 1:00:00); more than 6 digits ignored; leading zeros handled; overflow clamps to 99:59:59.
 - Rejects zero, negative, NaN and non-integer durations.
 
 ## 2. Accuracy test (manual, both OSes)
@@ -39,8 +39,9 @@ Window
 
 Timer
 
-- [ ] Start, pause, resume, reset all work with mouse and keyboard.
-- [ ] Digit entry works; presets work; invalid input can't produce a broken state.
+- [ ] Go, pause, resume, reset all work with mouse and keyboard.
+- [ ] Keypad entry works right-to-left (seconds -> minutes -> hours; e.g. 5-0 gives 50s, 5-0-0 gives 5m); no presets shown.
+- [ ] Pressing Go starts the countdown and immediately hides the keypad; resetting returns to idle and restores the keypad.
 - [ ] Digits never jitter horizontally as numbers change.
 - [ ] Last 10 seconds turns urgent; finish shows the finished state.
 
@@ -53,6 +54,7 @@ Alerts
 Look and feel
 
 - [ ] Light, dark and system themes; switching the OS theme updates the app in system mode.
+- [ ] Curvy classroom font (Fredoka) renders smoothly and cleanly at all sizes.
 - [ ] Text contrast is fine in both themes; focus ring visible with the keyboard.
 - [ ] Reduced-motion OS setting removes pulses and transitions.
 - [ ] Display scaling at 100%, 150%/200% (Windows) and Retina (Mac) renders crisply.

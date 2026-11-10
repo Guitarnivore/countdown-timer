@@ -26,7 +26,7 @@ src/
       engine.test.ts
       format.ts         formatRemaining(), parseDigits()
       useTimer.ts       React hook around the engine
-    ui/                 components: Display, Controls, ProgressRing, Presets, Settings
+    ui/                 components: Display, Controls, ProgressRing, Keypad, Settings
     styles/             tokens.css, base.css, components.css
     audio/chime.ts      Web Audio synthesised chime (no audio files)
     App.tsx, main.tsx

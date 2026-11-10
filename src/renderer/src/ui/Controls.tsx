@@ -31,9 +31,9 @@ export function Controls({
             className="control-button primary-button no-drag"
             onClick={onStart}
             disabled={!canStart}
-            aria-label="Start timer"
+            aria-label="Go timer"
           >
-            Start
+            Go
           </button>
         )
       case 'running':

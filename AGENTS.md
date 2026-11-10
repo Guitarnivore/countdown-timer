@@ -6,7 +6,7 @@ This is a learning/evaluation project: keep it small, readable and correct.
 ## Stack (fixed; ask before changing)
 
 - Electron (latest stable) + electron-vite, React, TypeScript (strict), plain CSS with custom properties, Vitest.
-- Font: `@fontsource-variable/manrope` (bundled; no CDN at runtime).
+- Font: `@fontsource-variable/fredoka` (bundled; no CDN at runtime; friendly and curvy for relaxed classroom environment).
 - Do NOT add: Tailwind, UI kits, state libraries, electron-store, moment/dayjs. Settings = small JSON file module. Ask before adding ANY dependency, and say why.
 
 ## Commands

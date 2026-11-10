@@ -2,7 +2,7 @@
 
 ## Concept
 
-A calm instrument. The digits are the one memorable element; everything around them stays quiet. The window will often be tiny and glanced at from a distance, so legibility beats decoration. Avoid generic template looks: no gradient washes, no identical rounded-card grids, no all-caps labels, no decorative eyebrows.
+A relaxed, approachable classroom timer. The design is friendly, warm, and legible from across a classroom, while remaining clean and focused. Curved, playful typography and Google Clock-inspired keypad entry create a calm, approachable tool for teachers and students. To maintain focus, there are no presets: users enter durations directly via a numeric keypad (seconds, then minutes, then hours), which disappears completely once the timer starts ("Go").
 
 ## Tokens (put in `styles/tokens.css`; components use only these)
 
@@ -24,53 +24,72 @@ Spacing scale: 4, 8, 12, 16, 24, 32 px as `--space-1..6`. Radii: `--radius-contr
 
 ## Typography
 
-One family: Manrope (variable, bundled). Sentence case everywhere.
+One family: Fredoka (variable, bundled via `@fontsource-variable/fredoka`). Fun, rounded, curvy letterforms suited for a friendly classroom environment. Sentence case everywhere.
 
-- Digits: weight 300 to 400, `font-variant-numeric: tabular-nums`, `letter-spacing: -0.02em`. Size is fluid (see below).
+- Digits: curvy rounded numerals, weight 400 to 600, `font-variant-numeric: tabular-nums`, `letter-spacing: -0.01em`. Size is fluid (see below).
 - UI labels: weight 600, 12 to 14 px, normal case.
 - Never let digits change width when numbers change (tabular figures + fixed character count per format).
 
 ## Fluid sizing (digits scale with the window)
 
-The stage is a size container (`container-type: size`). React sets `--chars` to the number of characters displayed (5 for `MM:SS`, 8 for `H:MM:SS`/`HH:MM:SS` as needed).
+The stage is a size container (`container-type: size`). React sets `--chars` to the number of characters displayed (5 for `MM:SS`, 8 for `HH:MM:SS` as needed).
 
 ```css
 .stage {
   container-type: size;
 }
 .digits {
-  font-size: min(calc(100cqw / (var(--chars) * 0.6)), 62cqh);
+  font-size: min(calc(100cqw / (var(--chars) * 0.62)), 62cqh);
 }
 ```
 
-Tune the `0.6` ratio to Manrope's tabular digit width. Show hours only when duration is an hour or more.
+Tune the `0.62` ratio to Fredoka's tabular digit width. Show hours only when duration is an hour or more (or in full `00h 00m 00s` format during keypad input).
 
 ## Layout by size class (use container queries, not window-size media queries)
 
+### Setup mode (Idle: Keypad visible, Google Clock style)
+
 ```
-Tiny   (width < 220 or height < 110)     Standard (default 360x220)        Large (width > 560 and height > 320)
-+--------------------+                  +---------------------------+      +-------------------------------+
-|       12:34        |                  | [pin]              [gear] |      | [pin]                   [gear] |
-+--------------------+                  |                           |      |                               |
- digits only, thin progress               |   (  12:34  )  ring       |      |        12:34 (huge)           |
- line under; controls on hover            |  [reset] [start/pause]    |      |   presets row                 |
-                                          |  presets: 1 5 10 15 25 60 |      |   [reset] [start/pause]       |
-                                          +---------------------------+      +-------------------------------+
+Tiny (< 220x110)                 Standard (default 360x220+)               Large (> 560x320)
++--------------------+           +-------------------------------+         +-----------------------------------+
+| 00:50        [ Go ]|           | [pin]                  [gear] |         | [pin]                      [gear] |
+| keypad on expand/  |           |          00m 50s              |         |            00h 05m 00s            |
+| popover or typing  |           |    [1] [2] [3]                |         |       [ 1 ]  [ 2 ]  [ 3 ]         |
++--------------------+           |    [4] [5] [6]                |         |       [ 4 ]  [ 5 ]  [ 6 ]         |
+                                 |    [7] [8] [9]                |         |       [ 7 ]  [ 8 ]  [ 9 ]         |
+                                 |   [00] [0] [<X]               |         |      [ 00 ]  [ 0 ]  [ <X ]        |
+                                 |          [ Go ]               |         |             [  Go  ]              |
+                                 +-------------------------------+         +-----------------------------------+
 ```
 
-- Content is centred. Controls are anchored at the bottom, pin/settings at the top corners, away from the OS title-bar buttons (leave safe space for Windows caption buttons and macOS traffic lights).
-- Tiny: hide everything except digits and a thin progress line; reveal a compact control strip on hover or keyboard focus.
+### Active / Running mode (Keypad hidden after "Go")
+
+```
+Tiny (< 220x110)                 Standard (default 360x220+)               Large (> 560x320)
++--------------------+           +-------------------------------+         +-----------------------------------+
+|       12:34        |           | [pin]                  [gear] |         | [pin]                      [gear] |
++--------------------+           |                               |         |                                   |
+ digits only, thin progress      |        (  12:34  ) ring       |         |           12:34 (huge)            |
+ line under; controls on hover   |                               |         |                                   |
+                                 |      [reset]   [pause]        |         |        [reset]    [pause]         |
+                                 +-------------------------------+         +-----------------------------------+
+```
+
+- Setup (Idle): Numeric keypad (1-9, 0, 00, Backspace/Clear) lets user enter duration starting with seconds, then minutes, then hours (e.g. typing `5-0` gives 50 seconds; `5-0-0` gives 5 minutes). No presets. The primary action is a prominent "Go" button.
+- Running / Paused: The keypad completely hides upon pressing "Go", freeing the full stage for large, clean digits and the progress indicator.
+- Reset / Edit: Pressing "Reset" from paused/finished returns to the Idle setup screen and brings back the keypad.
+- Tiny mode: Displays digits and a compact "Go" or control strip; typing digits via physical keyboard shifts time directly.
 - Progress: ring in Standard, full-width line in Tiny/Large. Colour = `--accent` while running.
 
 ## States
 
-| State     | Digits colour | Notes                                                                                               |
-| --------- | ------------- | --------------------------------------------------------------------------------------------------- |
-| Idle      | `--ink`       | digits editable; shows the configured duration                                                      |
-| Running   | `--ink`       | progress in `--accent`                                                                              |
-| Paused    | `--ink-muted` | primary button reads "Resume"                                                                       |
-| Last 10 s | `--urgent`    | no flashing                                                                                         |
-| Finished  | `--urgent`    | shows 00:00 and "Time's up"; the primary button becomes "Restart"; subtle single pulse, not looping |
+| State     | Digits colour | Keypad  | Primary Button | Notes                                                                   |
+| --------- | ------------- | ------- | -------------- | ----------------------------------------------------------------------- |
+| Idle      | `--ink`       | Visible | "Go"           | Google Clock keypad active; accepts 0-9; shifts seconds->minutes->hours |
+| Running   | `--ink`       | Hidden  | "Pause"        | Full window dedicated to digits and progress ring/bar                   |
+| Paused    | `--ink-muted` | Hidden  | "Resume"       | Secondary button: "Reset" (returns to Idle keypad)                      |
+| Last 10 s | `--urgent`    | Hidden  | "Pause"        | Calm urgent indicator without abrupt flashing                           |
+| Finished  | `--urgent`    | Hidden  | "Restart"      | Shows 00:00 and "Time's up"; secondary "Reset" restores keypad          |
 
 ## Motion
 
@@ -85,4 +104,4 @@ Only motion that answers an action (button press feedback about 120 ms, state co
 
 ## Copy
 
-Plain verbs: "Start", "Pause", "Resume", "Reset", "Restart". Finished message: "Time's up". Settings labels: "Keep on top", "Float above full-screen apps (Mac)", "Play sound", "Theme", "Opacity".
+Plain verbs: "Go", "Pause", "Resume", "Reset", "Restart". Finished message: "Time's up". Settings labels: "Keep on top", "Float above full-screen apps (Mac)", "Play sound", "Theme", "Opacity".

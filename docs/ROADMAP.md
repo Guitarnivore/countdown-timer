@@ -51,7 +51,7 @@ List exactly which behaviours differ between Windows and macOS and which you cou
 
 ---
 
-## Phase 3: Timer UI
+## Phase 3: Timer UI (Completed)
 
 **Goal:** a usable timer with scaling digits.
 **Prompt**
@@ -63,6 +63,24 @@ Give me a manual checklist for resizing from 120x72 up to full screen, and tell 
 ```
 
 **Done when:** you can set, run, pause and reset a timer; nothing clips at any size.
+
+---
+
+## Phase 3b: Keypad entry and classroom visual refresh
+
+**Goal:** replace presets with a Google Clock-style numeric keypad, hide keypad when timer runs, and refresh typography with a curvy classroom font.
+**Prompt**
+
+```
+Phase 3b. Read docs/PRD.md, docs/DESIGN.md, and docs/ARCHITECTURE.md.
+1) Replace @fontsource-variable/manrope with @fontsource-variable/fredoka. Update styles/tokens.css, base.css, and fluid scaling ratios for the friendly, curvy classroom font.
+2) Remove Presets UI. Build a Keypad component inspired by Google Clock with 0-9, 00, and backspace.
+3) Wire digit entry to fill right-to-left: seconds, then minutes, then hours (e.g. 5-0 -> 50s, 5-0-0 -> 5m, 1-2-0-0 -> 12m 00s). Support physical keyboard number input as well.
+4) Replace "Start" with "Go". When "Go" is pressed, hide the keypad so the running timer has full focus. Show keypad again when timer resets to idle.
+5) Update unit tests for keypad digit shifting and verification.
+```
+
+**Done when:** timer accepts keypad input (seconds->minutes->hours), presets are removed, keypad hides when Go is pressed and reappears on reset, and font displays Fredoka cleanly across themes and window sizes.
 
 ---
 
