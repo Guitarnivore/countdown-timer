@@ -16,6 +16,12 @@ describe('Keypad digit shifting (right-to-left fill)', () => {
     expect(r.totalSeconds).toBe(300)
   })
 
+  it('keeps entered seconds unnormalized until the timer starts', () => {
+    const r = parseDigits('90')
+    expect(r.formatted).toBe('00:90')
+    expect(r.ms).toBe(90 * 1000)
+  })
+
   it('typing 1, 2, 0, 0 yields 12 minutes 00 seconds', () => {
     const r = parseDigits('1200')
     expect(r.formatted).toBe('12:00')
@@ -30,9 +36,9 @@ describe('Keypad digit shifting (right-to-left fill)', () => {
     expect(r.totalSeconds).toBe(3600)
   })
 
-  it('typing 9, 9, 9, 9, 9, 9 yields 99 hours 59 minutes 59 seconds (clamped)', () => {
+  it('preserves entered fields while clamping the duration', () => {
     const r = parseDigits('999999')
-    expect(r.formatted).toBe('99:59:59')
+    expect(r.formatted).toBe('99:99:99')
     expect(r.ms).toBe((99 * 3600 + 59 * 60 + 59) * 1000)
   })
 

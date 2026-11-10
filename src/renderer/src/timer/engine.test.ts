@@ -229,7 +229,7 @@ describe('Formatting and Display', () => {
     // overflow clamps to 99:59:59
     const maxMs = (99 * 3600 + 59 * 60 + 59) * 1000
     const rOverflow = parseDigits('999999')
-    expect(rOverflow.formatted).toBe('99:59:59')
+    expect(rOverflow.formatted).toBe('99:99:99')
     expect(rOverflow.ms).toBe(maxMs)
   })
 })
