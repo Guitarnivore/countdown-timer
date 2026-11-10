@@ -1,5 +1,5 @@
-appId: com.electron.app
-productName: countdown-timer
+appId: com.countdowntimer.app
+productName: Countdown Timer
 directories:
   buildResources: build
 files:
