@@ -176,41 +176,26 @@
 }
 
 /* Keypad */
-.keypad {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2);
-  background-color: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-control);
-}
-
-.keypad-preview {
-  font-family: var(--font-sans);
-  font-variant-numeric: tabular-nums;
-  font-size: 16px;
-  color: var(--ink-muted);
-  margin-bottom: var(--space-1);
-}
-
 .keypad-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: var(--space-2);
 }
 
+.keypad-row {
+  display: contents;
+}
+
 .keypad-key {
-  min-width: 44px;
-  min-height: 44px;
+  min-width: 64px;
+  min-height: 64px;
   padding: var(--space-2);
   border-radius: var(--radius-control);
   border: 1px solid var(--line);
   background-color: var(--surface);
   color: var(--ink);
   font-family: var(--font-sans);
-  font-size: 16px;
+  font-size: 24px;
   font-weight: 400;
   display: inline-flex;
   align-items: center;
@@ -226,13 +211,8 @@
   background-color: var(--surface);
 }
 
-.keypad-key.double {
-  grid-column: span 1;
-  font-size: 14px;
-}
-
-.keypad-key.backspace {
-  font-size: 14px;
+.keypad-key--backspace {
+  font-size: 18px;
   letter-spacing: -0.01em;
 }
 
@@ -283,6 +263,21 @@
 
 .keypad-panel {
   margin-top: var(--space-2);
+}
+
+/* Keypad visible (timer not running): compact display and keypad sizing */
+.stage.keypad-visible .display-container {
+  height: 50%;
+}
+
+.stage.keypad-visible .ring-stage {
+  width: min(85cqw, 40cqh);
+}
+
+.stage.keypad-visible .keypad-key {
+  min-width: 52px;
+  min-height: 52px;
+  font-size: 20px;
 }
 
 /* ==========================================================================

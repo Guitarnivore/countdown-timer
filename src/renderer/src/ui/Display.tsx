@@ -41,7 +41,7 @@ export function Display({
     <div
       className={`display-container ${stateClass}${isEditing ? ' is-editing' : ''}`}
       style={styleVariables}
-      onClick={status === 'idle' ? onStartEdit : undefined}
+      onClick={status === 'idle' || status === 'paused' ? onStartEdit : undefined}
       onKeyDown={
         status === 'idle'
           ? (event) => {

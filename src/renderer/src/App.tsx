@@ -42,6 +42,7 @@ export default function App(): JSX.Element {
   }, [isPinned])
 
   const handleDigit = useCallback((digit: string): void => {
+    setIsEditing(true)
     setKeypadDigits((prev) => (prev.length < 6 ? prev + digit : prev))
   }, [])
 
@@ -117,7 +118,7 @@ export default function App(): JSX.Element {
         return
       }
 
-      if (timer.status === 'idle') {
+      if (timer.status !== 'running') {
         if (/^[0-9]$/.test(event.key)) {
           event.preventDefault()
           setIsEditing(true)
@@ -139,6 +140,8 @@ export default function App(): JSX.Element {
   const parsedEdit = parseDigits(keypadDigits)
   const canStart = timer.durationMs > 0 || (isEditing && parsedEdit.ms > 0)
 
+  const showKeypad = timer.status !== 'running'
+
   return (
     <div className="app-shell">
       <header className="header-bar">
@@ -157,7 +160,7 @@ export default function App(): JSX.Element {
         </button>
       </header>
 
-      <main className="stage">
+      <main className={`stage${showKeypad ? ' keypad-visible' : ''}`}>
         <div className="ring-stage">
           <ProgressRing
             progress={timer.progress}
@@ -172,7 +175,7 @@ export default function App(): JSX.Element {
             isEditing={isEditing}
             editFormatted={parsedEdit.formatted}
             onStartEdit={() => {
-              if (timer.status === 'idle') {
+              if (timer.status !== 'running' && timer.status !== 'finished') {
                 setIsEditing(true)
                 setKeypadDigits('')
               }
@@ -186,9 +189,9 @@ export default function App(): JSX.Element {
           isFinished={timer.isFinished}
         />
 
-        {isEditing && timer.status === 'idle' ? (
+        {showKeypad ? (
           <div className="keypad-panel">
-            <Keypad digits={keypadDigits} onDigit={handleDigit} onBackspace={handleBackspace} />
+            <Keypad onDigit={handleDigit} onBackspace={handleBackspace} />
           </div>
         ) : null}
 
