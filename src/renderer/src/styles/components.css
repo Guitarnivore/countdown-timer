@@ -1,0 +1,412 @@
+/* Countdown Timer Component Styles */
+/* Uses ONLY tokens from tokens.css */
+
+.app-shell {
+  container-type: size;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background-color: var(--bg);
+  color: var(--ink);
+  overflow: hidden;
+  user-select: none;
+  -webkit-app-region: drag;
+}
+
+/* Header bar for window pin and title */
+.header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  height: 36px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.header-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-muted);
+}
+
+.pin-button {
+  min-width: 32px;
+  min-height: 32px;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--line);
+  background-color: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease,
+    border-color 120ms ease;
+}
+
+.pin-button.is-pinned {
+  background-color: var(--accent);
+  border-color: var(--accent);
+  color: var(--surface);
+}
+
+/* Main fluid stage */
+.stage {
+  container-type: size;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  overflow: hidden;
+  position: relative;
+}
+
+/* Digits container & typography */
+.display-container {
+  container-type: size;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 80%;
+  height: 80%;
+  outline: none;
+}
+
+.display-container.is-idle {
+  cursor: pointer;
+}
+
+.display-container:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-control);
+}
+
+.display-container.is-editing {
+  outline: 1px dashed var(--accent);
+  border-radius: var(--radius-control);
+}
+
+.digits {
+  font-family: var(--font-sans);
+  font-weight: 350;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--ink);
+  transition: color 200ms ease;
+  user-select: none;
+  font-size: min(calc(100cqw / (var(--chars) * 0.6)), 62cqh);
+}
+
+.is-paused .digits {
+  color: var(--ink-muted);
+}
+
+.is-urgent .digits {
+  color: var(--urgent);
+}
+
+.is-finished .digits {
+  color: var(--urgent);
+  animation: subtle-pulse 400ms ease 1;
+}
+
+.finished-badge {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--urgent);
+  margin-top: var(--space-1);
+}
+
+/* Standard Mode: Progress Ring wraps the digits */
+.ring-stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(85cqw, 48cqh);
+  aspect-ratio: 1;
+  margin: auto 0;
+}
+
+.progress-ring-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.progress-ring-track {
+  opacity: 0.35;
+}
+
+.progress-ring-indicator {
+  transition:
+    stroke-dashoffset 200ms ease,
+    stroke 200ms ease;
+}
+
+/* Full-width linear progress bar (used in Tiny and Large mode) */
+.progress-bar-track {
+  display: none;
+  width: 100%;
+  height: 3px;
+  background-color: var(--line);
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  transition:
+    width 200ms ease,
+    background-color 200ms ease;
+}
+
+/* Controls */
+.controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.control-button {
+  min-width: 32px;
+  min-height: 32px;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--line);
+  background-color: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    opacity 120ms ease;
+}
+
+.control-button:hover:not(:disabled) {
+  border-color: var(--ink-muted);
+}
+
+.control-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.control-button:focus-visible,
+.preset-button:focus-visible,
+.pin-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Presets */
+.presets-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+}
+
+.preset-button {
+  min-width: 32px;
+  min-height: 32px;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--line);
+  background-color: var(--surface);
+  color: var(--ink-muted);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    color 120ms ease,
+    border-color 120ms ease;
+}
+
+.preset-button:hover:not(:disabled) {
+  color: var(--ink);
+  border-color: var(--ink-muted);
+}
+
+.preset-button.is-active {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* Tiny mode hover overlay */
+.tiny-controls-strip {
+  display: none;
+}
+
+/* ==========================================================================
+   CONTAINER QUERIES (Per docs/DESIGN.md)
+   Tiny:     width < 220px or height < 110px
+   Standard: default (360x220)
+   Large:    width > 560px and height > 320px
+   ========================================================================== */
+
+/* Tiny layout (width < 220px or height < 110px) */
+@container (max-width: 219px) or (max-height: 109px) {
+  .header-bar {
+    display: none;
+  }
+
+  .presets-row {
+    display: none;
+  }
+
+  .controls-row:not(.tiny-controls-strip) {
+    display: none;
+  }
+
+  .progress-ring-svg {
+    display: none;
+  }
+
+  .ring-stage {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: auto;
+    margin: 0;
+  }
+
+  .display-container {
+    width: 95%;
+    height: 90%;
+  }
+
+  .digits {
+    font-size: min(calc(96cqw / (var(--chars) * 0.6)), 62cqh);
+  }
+
+  .progress-bar-track {
+    display: block;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+  }
+
+  .tiny-controls-strip {
+    display: flex;
+    position: absolute;
+    bottom: var(--space-1);
+    left: 50%;
+    transform: translateX(-50%);
+    gap: var(--space-1);
+    padding: var(--space-1);
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-control);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 120ms ease;
+    z-index: 10;
+  }
+
+  .tiny-controls-strip .control-button {
+    min-width: 28px;
+    min-height: 28px;
+    padding: var(--space-1) var(--space-2);
+    font-size: 11px;
+  }
+
+  .app-shell:hover .tiny-controls-strip,
+  .app-shell:focus-within .tiny-controls-strip {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+/* Large layout (width > 560px and height > 320px) */
+@container (min-width: 561px) and (min-height: 321px) {
+  .progress-ring-svg {
+    display: none;
+  }
+
+  .ring-stage {
+    width: 100%;
+    height: auto;
+    aspect-ratio: auto;
+    flex: 1;
+    margin: 0;
+  }
+
+  .display-container {
+    width: 100%;
+    height: min(280px, 50cqh);
+  }
+
+  .digits {
+    font-size: min(calc(100cqw / (var(--chars) * 0.6)), 62cqh);
+  }
+
+  .progress-bar-track {
+    display: block;
+    width: 75%;
+    height: 4px;
+    border-radius: var(--radius-control);
+    margin: var(--space-2) auto var(--space-3) auto;
+  }
+
+  .presets-row {
+    margin-bottom: var(--space-2);
+  }
+
+  .controls-row {
+    margin-bottom: var(--space-2);
+  }
+}
+
+/* Subtle single pulse animation for finish state */
+@keyframes subtle-pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .is-finished .digits {
+    animation: none;
+  }
+
+  .progress-ring-indicator,
+  .progress-bar-fill,
+  .digits,
+  .control-button,
+  .preset-button,
+  .pin-button {
+    transition: none !important;
+  }
+}
