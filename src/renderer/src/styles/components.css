@@ -3,6 +3,7 @@
 
 .app-shell {
   container-type: size;
+  container-name: window-size;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -20,7 +21,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-1);
   height: 36px;
   flex-shrink: 0;
   border-bottom: 1px solid var(--line);
@@ -66,7 +67,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-1);
   overflow: hidden;
   position: relative;
 }
@@ -366,7 +367,7 @@
   .tiny-controls-strip {
     display: flex;
     position: absolute;
-    bottom: var(--space-1);
+    bottom: 0;
     left: 50%;
     transform: translateX(-50%);
     gap: var(--space-1);
@@ -403,7 +404,7 @@
   .stage.keypad-visible {
     justify-content: center;
     gap: var(--space-2);
-    padding: var(--space-1) var(--space-2);
+    padding: var(--space-1);
   }
 
   .stage.keypad-visible .ring-stage {
@@ -471,9 +472,88 @@ font-size: min(calc(100cqw / (var(--chars) * 0.62)), 62cqh);
     margin-bottom: var(--space-2);
   }
 
-  .controls-row {
-    margin-bottom: var(--space-2);
+}
+
+/* Running layout follows the window's aspect ratio. */
+@container window-size (orientation: landscape) {
+  .stage:not(.keypad-visible) .progress-ring-svg {
+    display: none;
   }
+
+  .stage:not(.keypad-visible) .ring-stage {
+    width: 100%;
+    height: auto;
+    aspect-ratio: auto;
+    flex: 1;
+    margin: 0;
+  }
+
+  .stage:not(.keypad-visible) .display-container {
+    width: 100%;
+    height: min(280px, 50cqh);
+  }
+
+  .stage:not(.keypad-visible) .digits {
+    font-size: min(calc(100cqw / (var(--chars) * 0.62)), 62cqh);
+  }
+
+  .stage:not(.keypad-visible) .progress-bar-track {
+    display: block;
+    width: 75%;
+    height: 4px;
+    border-radius: var(--radius-control);
+    margin: var(--space-2) auto var(--space-3);
+  }
+}
+
+@container window-size (orientation: portrait) {
+  .stage:not(.keypad-visible) .ring-stage {
+    width: min(85cqw, 70cqh);
+    height: auto;
+    aspect-ratio: 1;
+    flex: 0 1 auto;
+    margin: auto 0;
+  }
+
+  .stage:not(.keypad-visible) .display-container {
+    width: 80%;
+    height: 80%;
+  }
+
+  .stage:not(.keypad-visible) .progress-ring-svg {
+    display: block;
+  }
+
+  .stage:not(.keypad-visible) .progress-bar-track {
+    display: none;
+  }
+}
+
+@container (max-width: 219px) or (max-height: 109px) {
+  .stage:not(.keypad-visible) .progress-bar-track {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: auto;
+    height: 2px;
+    margin: 0;
+  }
+}
+
+/* Setup mode always pairs the digits with a linear progress bar. */
+.stage.keypad-visible .progress-ring-svg {
+  display: none;
+}
+
+.stage.keypad-visible .progress-bar-track {
+  display: block;
+  position: static;
+  width: 75%;
+  height: 4px;
+  flex: 0 0 auto;
+  border-radius: var(--radius-control);
+  margin: 0 auto;
 }
 
 /* Subtle single pulse animation for finish state */

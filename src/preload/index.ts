@@ -7,7 +7,8 @@ const api: TimerAPI = {
     ipcRenderer.invoke('settings:set', partial),
   setAlwaysOnTop: (alwaysOnTop: boolean): Promise<boolean> =>
     ipcRenderer.invoke('window:setAlwaysOnTop', alwaysOnTop),
-  setOpacity: (opacity: number): Promise<number> => ipcRenderer.invoke('window:setOpacity', opacity)
+  setOpacity: (opacity: number): Promise<number> =>
+    ipcRenderer.invoke('window:setOpacity', opacity)
 }
 
 if (process.contextIsolated) {
