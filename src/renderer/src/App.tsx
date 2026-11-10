@@ -1,127 +1,234 @@
-import { useEffect, useState, type JSX } from 'react'
-import type { Settings } from '../../shared/types'
+import { useCallback, useEffect, useState, type JSX } from 'react'
+import { parseDigits } from './timer/format'
+import { useTimer } from './timer/useTimer'
+import { Controls } from './ui/Controls'
+import { Display } from './ui/Display'
+import { Presets } from './ui/Presets'
+import { ProgressBar, ProgressRing } from './ui/ProgressRing'
 
 export default function App(): JSX.Element {
-  const [settings, setSettings] = useState<Settings | null>(null)
   const [isPinned, setIsPinned] = useState<boolean>(true)
-  const [statusMessage, setStatusMessage] = useState<string>(() =>
-    typeof window !== 'undefined' && window.api
-      ? 'Connecting to IPC...'
-      : 'window.api bridge unavailable'
-  )
+  const [isEditing, setIsEditing] = useState<boolean>(false)
+  const [editBuffer, setEditBuffer] = useState<string>('')
 
+  const timer = useTimer({
+    initialDurationMs: 5 * 60 * 1000
+  })
+
+  // Load initial settings (alwaysOnTop) from main process
   useEffect(() => {
-    let mounted = true
     if (!window.api?.getSettings) return
-
     window.api
       .getSettings()
-      .then((loaded) => {
-        if (!mounted) return
-        setSettings(loaded)
-        setIsPinned(loaded.alwaysOnTop)
-        setStatusMessage('IPC bridge connected')
+      .then((settings) => {
+        setIsPinned(settings.alwaysOnTop)
       })
-      .catch((err) => {
-        if (!mounted) return
-        setStatusMessage(`Failed to load settings: ${String(err)}`)
+      .catch(() => {
+        // Retain default pinned state
       })
-
-    return (): void => {
-      mounted = false
-    }
   }, [])
 
-  const handleTogglePin = async (): Promise<void> => {
-    const nextState = !isPinned
+  const handleTogglePin = useCallback(async (): Promise<void> => {
+    const nextPin = !isPinned
+    setIsPinned(nextPin)
     try {
-      if (window.api && typeof window.api.setAlwaysOnTop === 'function') {
-        const result = await window.api.setAlwaysOnTop(nextState)
-        setIsPinned(result)
-        setSettings((prev) => (prev ? { ...prev, alwaysOnTop: result } : prev))
-        setStatusMessage(`Always on top ${result ? 'enabled' : 'disabled'}`)
+      if (window.api?.setAlwaysOnTop) {
+        const actual = await window.api.setAlwaysOnTop(nextPin)
+        setIsPinned(actual)
       }
-    } catch (err) {
-      setStatusMessage(`Error setting pin: ${String(err)}`)
+    } catch {
+      // Retain optimistic UI state
     }
-  }
+  }, [isPinned])
+
+  const commitEdit = useCallback((): boolean => {
+    if (!isEditing) return false
+    const parsed = parseDigits(editBuffer)
+    if (parsed.ms > 0) {
+      timer.setDuration(parsed.ms)
+    }
+    setIsEditing(false)
+    setEditBuffer('')
+    return parsed.ms > 0
+  }, [editBuffer, isEditing, timer])
+
+  const cancelEdit = useCallback((): void => {
+    setIsEditing(false)
+    setEditBuffer('')
+  }, [])
+
+  const handleSelectPreset = useCallback(
+    (durationMs: number): void => {
+      cancelEdit()
+      timer.setDuration(durationMs)
+    },
+    [cancelEdit, timer]
+  )
+
+  const handleStart = useCallback((): void => {
+    if (isEditing) {
+      const valid = commitEdit()
+      if (valid) {
+        timer.start()
+      }
+      return
+    }
+    timer.start()
+  }, [commitEdit, isEditing, timer])
+
+  // Global keyboard shortcuts (Space, R, P, Esc, digits)
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent): void => {
+      // Avoid intercepting interactive form elements if present
+      const target = event.target as HTMLElement | null
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) {
+        return
+      }
+
+      if (event.key === ' ' || event.code === 'Space') {
+        event.preventDefault()
+        if (timer.status === 'running') {
+          timer.pause()
+        } else if (timer.status === 'paused') {
+          timer.resume()
+        } else if (timer.status === 'finished') {
+          timer.restart()
+        } else {
+          handleStart()
+        }
+        return
+      }
+
+      if (event.key === 'r' || event.key === 'R') {
+        event.preventDefault()
+        cancelEdit()
+        timer.reset()
+        return
+      }
+
+      if (event.key === 'p' || event.key === 'P') {
+        event.preventDefault()
+        void handleTogglePin()
+        return
+      }
+
+      if (event.key === 'Escape') {
+        if (isEditing) {
+          event.preventDefault()
+          cancelEdit()
+        }
+        return
+      }
+
+      if (event.key === 'Enter') {
+        if (isEditing) {
+          event.preventDefault()
+          handleStart()
+        }
+        return
+      }
+
+      if (timer.status === 'idle') {
+        if (/^[0-9]$/.test(event.key)) {
+          event.preventDefault()
+          setIsEditing(true)
+          setEditBuffer((prev) => (prev.length < 6 ? prev + event.key : prev))
+        } else if (event.key === 'Backspace' && isEditing) {
+          event.preventDefault()
+          setEditBuffer((prev) => prev.slice(0, -1))
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return (): void => window.removeEventListener('keydown', handleKeyDown)
+  }, [cancelEdit, handleStart, handleTogglePin, isEditing, timer])
 
   const isMac = typeof navigator !== 'undefined' && /mac/i.test(navigator.userAgent)
   const isWin = typeof navigator !== 'undefined' && /win/i.test(navigator.userAgent)
 
+  const parsedEdit = parseDigits(editBuffer)
+  const canStart = timer.durationMs > 0 || (isEditing && parsedEdit.ms > 0)
+
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
-        width: '100%',
-        backgroundColor: 'var(--bg)',
-        color: 'var(--ink)'
-      }}
-    >
-      {/* Title bar drag region; safe margins avoid Windows caption buttons and macOS traffic lights */}
-      <header className="title-bar">
-        <span
-          style={{
-            fontSize: '12px',
-            fontWeight: 600,
-            color: 'var(--ink-muted)',
-            marginLeft: isMac ? '72px' : '0'
-          }}
-        >
-          Countdown Timer Shell
+    <div className="app-shell">
+      <header className="header-bar">
+        <span className="header-title" style={{ marginLeft: isMac ? 'var(--space-6)' : '0' }}>
+          Countdown
         </span>
         <button
           type="button"
-          onClick={handleTogglePin}
-          className="no-drag"
-          style={{
-            minHeight: '28px',
-            padding: '2px var(--space-2)',
-            borderRadius: 'var(--radius-control)',
-            backgroundColor: isPinned ? 'var(--accent)' : 'var(--surface)',
-            color: isPinned ? 'var(--surface)' : 'var(--ink)',
-            fontSize: '12px',
-            fontWeight: 600,
-            marginRight: isWin ? '140px' : '0'
-          }}
+          onClick={() => void handleTogglePin()}
+          className={`pin-button no-drag${isPinned ? ' is-pinned' : ''}`}
+          style={{ marginRight: isWin ? '140px' : '0' }}
           aria-pressed={isPinned}
+          aria-label={isPinned ? 'Always on top: on' : 'Always on top: off'}
         >
           {isPinned ? 'Pinned' : 'Pin'}
         </button>
       </header>
 
-      <main
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flex: 1,
-          padding: 'var(--space-3)',
-          textAlign: 'center',
-          gap: 'var(--space-2)'
-        }}
-      >
-        <p style={{ fontSize: '14px', fontWeight: 600 }}>Phase 2: Window shell</p>
-        <p style={{ fontSize: '12px', color: 'var(--ink-muted)' }}>{statusMessage}</p>
-        {settings && (
-          <div
-            style={{
-              fontSize: '11px',
-              color: 'var(--ink-muted)',
-              backgroundColor: 'var(--surface)',
-              padding: 'var(--space-2) var(--space-3)',
-              borderRadius: 'var(--radius-control)',
-              border: '1px solid var(--line)',
-              maxWidth: '90%'
+      <main className="stage">
+        <div className="ring-stage">
+          <ProgressRing
+            progress={timer.progress}
+            isUrgent={timer.isUrgent}
+            isFinished={timer.isFinished}
+          />
+          <Display
+            formattedTime={timer.formattedTime}
+            status={timer.status}
+            isUrgent={timer.isUrgent}
+            isFinished={timer.isFinished}
+            isEditing={isEditing}
+            editFormatted={parsedEdit.formatted}
+            onStartEdit={() => {
+              if (timer.status === 'idle') {
+                setIsEditing(true)
+                setEditBuffer('')
+              }
             }}
-          >
-            Always on top: {settings.alwaysOnTop ? 'true' : 'false'} | Opacity: {settings.opacity} |
-            Theme: {settings.theme}
-          </div>
-        )}
+          />
+        </div>
+
+        <ProgressBar
+          progress={timer.progress}
+          isUrgent={timer.isUrgent}
+          isFinished={timer.isFinished}
+        />
+
+        <Controls
+          status={timer.status}
+          canStart={canStart}
+          onStart={handleStart}
+          onPause={timer.pause}
+          onResume={timer.resume}
+          onReset={() => {
+            cancelEdit()
+            timer.reset()
+          }}
+          onRestart={timer.restart}
+        />
+
+        <Presets
+          onSelectDuration={handleSelectPreset}
+          currentDurationMs={timer.durationMs}
+          disabled={timer.status === 'running'}
+        />
+
+        <Controls
+          className="tiny-controls-strip"
+          status={timer.status}
+          canStart={canStart}
+          onStart={handleStart}
+          onPause={timer.pause}
+          onResume={timer.resume}
+          onReset={() => {
+            cancelEdit()
+            timer.reset()
+          }}
+          onRestart={timer.restart}
+        />
       </main>
     </div>
   )

@@ -1,5 +1,6 @@
 @import '@fontsource-variable/manrope';
 @import './tokens.css';
+@import './components.css';
 
 *,
 *::before,
