@@ -8,7 +8,9 @@ const api: TimerAPI = {
   setAlwaysOnTop: (alwaysOnTop: boolean): Promise<boolean> =>
     ipcRenderer.invoke('window:setAlwaysOnTop', alwaysOnTop),
   setOpacity: (opacity: number): Promise<number> =>
-    ipcRenderer.invoke('window:setOpacity', opacity)
+    ipcRenderer.invoke('window:setOpacity', opacity),
+  setKeypadMode: (enabled: boolean): Promise<void> =>
+    ipcRenderer.invoke('window:setKeypadMode', enabled)
 }
 
 if (process.contextIsolated) {

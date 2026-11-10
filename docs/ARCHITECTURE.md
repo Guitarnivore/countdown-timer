@@ -89,7 +89,8 @@ Read defensively: missing or corrupt file falls back to defaults; unknown keys a
 
 ## Window behaviour
 
-- Defaults: 360x220, `minWidth: 120`, `minHeight: 72`, no max, `resizable: true`, `alwaysOnTop: true`, `show: false` then `ready-to-show`.
+- Defaults: 360x450 with the keypad visible; `minWidth: 120`, `minHeight: 72` and no max while the keypad is hidden; `resizable: true`, `alwaysOnTop: true`, `show: false` then `ready-to-show`.
+- While the keypad is visible, maintain a 4:5 window aspect ratio and a 360x450 minimum size; restore the normal minimum size and free resizing when it is hidden.
 - Title bar: prefer `titleBarStyle: 'hidden'` (macOS keeps traffic lights; on Windows add `titleBarOverlay` for native caption buttons). Avoid `frame: false` unless needed, because native edge-resizing and snapping are more reliable with the hidden title bar. Provide a CSS drag region (`-webkit-app-region: drag`) and mark buttons `no-drag`.
 - Persist bounds on `resize`/`move` (debounced ~300 ms). On launch, validate that the saved rectangle intersects a connected display (`screen.getAllDisplays()`); otherwise centre on the primary display.
 - Opacity: `win.setOpacity()`.

@@ -1,6 +1,6 @@
 import { ipcMain, type BrowserWindow } from 'electron'
 import type { SettingsStore } from './settings'
-import { setWindowAlwaysOnTop } from './window'
+import { setKeypadWindowMode, setWindowAlwaysOnTop } from './window'
 import type { Settings } from '../shared/types'
 
 export function registerIpcHandlers(win: BrowserWindow, settingsStore: SettingsStore): void {
@@ -9,6 +9,7 @@ export function registerIpcHandlers(win: BrowserWindow, settingsStore: SettingsS
   ipcMain.removeHandler('settings:set')
   ipcMain.removeHandler('window:setAlwaysOnTop')
   ipcMain.removeHandler('window:setOpacity')
+  ipcMain.removeHandler('window:setKeypadMode')
 
   ipcMain.handle('settings:get', (): Settings => {
     return settingsStore.getSettings()
@@ -60,5 +61,13 @@ export function registerIpcHandlers(win: BrowserWindow, settingsStore: SettingsS
     }
     settingsStore.updateSettings({ opacity: clamped })
     return clamped
+  })
+
+  ipcMain.handle('window:setKeypadMode', (_event, enabled: unknown): void => {
+    if (typeof enabled !== 'boolean') {
+      throw new TypeError('Expected boolean for keypad mode')
+    }
+
+    setKeypadWindowMode(win, enabled)
   })
 }

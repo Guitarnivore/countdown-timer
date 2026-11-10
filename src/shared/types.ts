@@ -24,6 +24,7 @@ export interface TimerAPI {
   setSettings: (partial: Partial<Settings>) => Promise<Settings>
   setAlwaysOnTop: (alwaysOnTop: boolean) => Promise<boolean>
   setOpacity: (opacity: number) => Promise<number>
+  setKeypadMode: (enabled: boolean) => Promise<void>
 }
 
 export const DEFAULT_SETTINGS: Settings = {

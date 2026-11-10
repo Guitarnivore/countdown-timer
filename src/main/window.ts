@@ -3,9 +3,15 @@ import { join } from 'node:path'
 import { is } from '@electron-toolkit/utils'
 import { isBoundsVisibleOnDisplays, type SettingsStore } from './settings'
 import type { Rectangle } from '../shared/types'
+import {
+  fitBoundsToKeypad,
+  KEYPAD_ASPECT_RATIO,
+  KEYPAD_MIN_HEIGHT,
+  KEYPAD_MIN_WIDTH
+} from './window-layout'
 
 const DEFAULT_WIDTH = 360
-const DEFAULT_HEIGHT = 220
+const DEFAULT_HEIGHT = 450
 const MIN_WIDTH = 120
 const MIN_HEIGHT = 72
 
@@ -32,6 +38,31 @@ export function setWindowAlwaysOnTop(win: BrowserWindow, alwaysOnTop: boolean): 
   } else {
     win.setAlwaysOnTop(false)
   }
+}
+
+export function setKeypadWindowMode(win: BrowserWindow, enabled: boolean): void {
+  if (win.isDestroyed()) return
+
+  if (enabled) {
+    const keypadBounds = fitBoundsToKeypad(win.getBounds())
+    const workArea = screen.getDisplayMatching(keypadBounds).workArea
+    keypadBounds.x = Math.max(
+      workArea.x,
+      Math.min(keypadBounds.x, workArea.x + workArea.width - keypadBounds.width)
+    )
+    keypadBounds.y = Math.max(
+      workArea.y,
+      Math.min(keypadBounds.y, workArea.y + workArea.height - keypadBounds.height)
+    )
+
+    win.setMinimumSize(KEYPAD_MIN_WIDTH, KEYPAD_MIN_HEIGHT)
+    win.setBounds(keypadBounds)
+    win.setAspectRatio(KEYPAD_ASPECT_RATIO)
+    return
+  }
+
+  win.setAspectRatio(0)
+  win.setMinimumSize(MIN_WIDTH, MIN_HEIGHT)
 }
 
 export function createTimerWindow(settingsStore: SettingsStore): BrowserWindow {
@@ -98,6 +129,7 @@ export function createTimerWindow(settingsStore: SettingsStore): BrowserWindow {
   })
 
   win.once('ready-to-show', () => {
+    setKeypadWindowMode(win, true)
     win.show()
   })
 

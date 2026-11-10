@@ -266,20 +266,48 @@
   margin-top: var(--space-2);
 }
 
-/* Keypad visible (timer paused/idle): resize display for balanced proportions */
+/* Setup layout scales continuously with the keypad window. */
+.stage.keypad-visible {
+  justify-content: center;
+  gap: var(--space-2);
+}
+
 .stage.keypad-visible .display-container {
-  width: 68%;
-  height: 45%;
+  width: 100%;
+  height: clamp(48px, 14cqh, 120px);
 }
 
 .stage.keypad-visible .ring-stage {
-  width: min(55cqw, 30cqh);
+  flex: 0 0 auto;
+  width: 100%;
+  height: clamp(48px, 14cqh, 120px);
+  aspect-ratio: auto;
+  margin: 0;
+}
+
+.stage.keypad-visible .keypad-panel {
+  margin-top: var(--space-2);
+}
+
+.stage.keypad-visible .keypad-grid {
+  --key-size: clamp(48px, min(13cqw, 12cqh), 112px);
+  grid-template-columns: repeat(3, var(--key-size));
+  justify-content: center;
+  gap: clamp(var(--space-2), 2cqh, var(--space-4));
 }
 
 .stage.keypad-visible .keypad-key {
-  min-width: 48px;
-  min-height: 48px;
-  font-size: 18px;
+  width: var(--key-size);
+  min-width: 0;
+  height: var(--key-size);
+  min-height: 0;
+  padding: var(--space-1);
+  font-size: clamp(20px, 3cqh, 32px);
+}
+
+.stage.keypad-visible .progress-bar-track {
+  flex: 0 0 auto;
+  margin: 0 auto;
 }
 
 /* ==========================================================================
@@ -399,48 +427,6 @@
 @container (min-width: 561px) and (min-height: 321px) {
   .progress-ring-svg {
     display: none;
-  }
-
-  .stage.keypad-visible {
-    justify-content: center;
-    gap: var(--space-2);
-    padding: var(--space-1);
-  }
-
-  .stage.keypad-visible .ring-stage {
-    flex: 0 0 auto;
-    width: 100%;
-    height: auto;
-    margin: 0;
-  }
-
-  .stage.keypad-visible .display-container {
-    width: 100%;
-    height: clamp(48px, 14cqh, 120px);
-  }
-
-  .stage.keypad-visible .progress-bar-track {
-    flex: 0 0 auto;
-    margin: 0 auto;
-  }
-
-  .stage.keypad-visible .keypad-panel {
-    margin-top: var(--space-4);
-  }
-
-  .stage.keypad-visible .keypad-grid {
-    --key-size: clamp(48px, min(13cqw, 12cqh), 112px);
-    grid-template-columns: repeat(3, var(--key-size));
-    gap: clamp(var(--space-2), 2cqh, var(--space-4));
-  }
-
-  .stage.keypad-visible .keypad-key {
-    width: var(--key-size);
-    min-width: 0;
-    height: var(--key-size);
-    min-height: 0;
-    padding: var(--space-1);
-    font-size: clamp(20px, 3cqh, 32px);
   }
 
   .ring-stage {

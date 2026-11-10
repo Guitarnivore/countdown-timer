@@ -142,6 +142,12 @@ export default function App(): JSX.Element {
 
   const showKeypad = timer.status !== 'running'
 
+  useEffect(() => {
+    void window.api.setKeypadMode(showKeypad).catch((error: unknown) => {
+      console.error('Failed to update keypad window mode:', error)
+    })
+  }, [showKeypad])
+
   return (
     <div className="app-shell">
       <header className="header-bar">
