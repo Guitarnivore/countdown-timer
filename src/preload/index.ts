@@ -1,22 +1,21 @@
-import { contextBridge } from 'electron'
-import { electronAPI } from '@electron-toolkit/preload'
+import { contextBridge, ipcRenderer } from 'electron'
+import type { Settings, TimerAPI } from '../shared/types'
 
-// Custom APIs for renderer
-const api = {}
+const api: TimerAPI = {
+  getSettings: (): Promise<Settings> => ipcRenderer.invoke('settings:get'),
+  setSettings: (partial: Partial<Settings>): Promise<Settings> =>
+    ipcRenderer.invoke('settings:set', partial),
+  setAlwaysOnTop: (alwaysOnTop: boolean): Promise<boolean> =>
+    ipcRenderer.invoke('window:setAlwaysOnTop', alwaysOnTop),
+  setOpacity: (opacity: number): Promise<number> => ipcRenderer.invoke('window:setOpacity', opacity)
+}
 
-// Use `contextBridge` APIs to expose Electron APIs to
-// renderer only if context isolation is enabled, otherwise
-// just add to the DOM global.
 if (process.contextIsolated) {
   try {
-    contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('api', api)
   } catch (error) {
-    console.error(error)
+    console.error('Failed to expose api to main world:', error)
   }
 } else {
-  // @ts-ignore (define in dts)
-  window.electron = electronAPI
-  // @ts-ignore (define in dts)
   window.api = api
 }
