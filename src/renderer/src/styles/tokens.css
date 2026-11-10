@@ -1,0 +1,64 @@
+:root {
+  /* Typography */
+  --font-sans: 'Manrope Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* Spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  /* Radii */
+  --radius-control: 10px;
+  --radius-window-inner: 14px;
+
+  /* Soft shadow for floating panels */
+  --shadow-panel: 0 4px 16px rgba(0, 0, 0, 0.12);
+
+  /* Daylight (Light) theme defaults */
+  --bg: #EEF1F5;
+  --surface: #FFFFFF;
+  --ink: #1C2733;
+  --ink-muted: #5B6878;
+  --accent: #138A8A;
+  --urgent: #D9482B;
+  --line: #D5DBE3;
+}
+
+/* Explicit theme switches via data-theme on <html> */
+html[data-theme='light'] {
+  --bg: #EEF1F5;
+  --surface: #FFFFFF;
+  --ink: #1C2733;
+  --ink-muted: #5B6878;
+  --accent: #138A8A;
+  --urgent: #D9482B;
+  --line: #D5DBE3;
+}
+
+html[data-theme='dark'] {
+  --bg: #161C26;
+  --surface: #1F2733;
+  --ink: #E9EEF4;
+  --ink-muted: #9AA7B8;
+  --accent: #4FC3C3;
+  --urgent: #FF7A59;
+  --line: #2E394A;
+  --shadow-panel: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
+
+/* System fallback when data-theme is not explicitly set */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #161C26;
+    --surface: #1F2733;
+    --ink: #E9EEF4;
+    --ink-muted: #9AA7B8;
+    --accent: #4FC3C3;
+    --urgent: #FF7A59;
+    --line: #2E394A;
+    --shadow-panel: 0 4px 20px rgba(0, 0, 0, 0.35);
+  }
+}
