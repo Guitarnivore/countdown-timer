@@ -63,15 +63,16 @@ isFinished(state, nowMs): boolean
 
 ## IPC contract (typed, validated in main)
 
-| Channel                 | Direction        | Payload                         | Notes                                  |
-| ----------------------- | ---------------- | ------------------------------- | -------------------------------------- |
-| `settings:get`          | invoke           | none, returns `Settings`        |                                        |
-| `settings:set`          | invoke           | `Partial<Settings>`             | validate keys and ranges               |
-| `window:setAlwaysOnTop` | invoke           | `boolean`                       | also persists                          |
-| `window:setOpacity`     | invoke           | `number` 0.3 to 1               |                                        |
-| `alert:finished`        | invoke           | none                            | notification + attention               |
-| `progress:set`          | send             | `number` 0 to 1, or -1 to clear | taskbar/dock                           |
-| `theme:changed`         | main to renderer | `'light'\|'dark'`               | from `nativeTheme` when theme = system |
+| Channel                 | Direction | Payload                         | Notes                                                                       |
+| ----------------------- | --------- | ------------------------------- | --------------------------------------------------------------------------- |
+| `settings:get`          | invoke    | none, returns `Settings`        |                                                                             |
+| `settings:set`          | invoke    | `Partial<Settings>`             | validate keys and ranges; applies `alwaysOnTop` and `opacity` to the window |
+| `window:setAlwaysOnTop` | invoke    | `boolean`                       | also persists (not used by renderer)                                        |
+| `window:setOpacity`     | invoke    | `number` 0.3 to 1               | (not used by renderer)                                                      |
+| `alert:finished`        | invoke    | none                            | notification + attention                                                    |
+| `progress:set`          | send      | `number` 0 to 1, or -1 to clear | taskbar/dock                                                                |
+
+Theme is not sent over IPC. The renderer sets `data-theme` on `<html>` from `settings.theme`; `system` removes the attribute so `tokens.css` follows the OS via `prefers-color-scheme`.
 
 ## Settings schema (JSON file, `schemaVersion: 1`)
 

@@ -1,6 +1,7 @@
 import { ipcMain, type BrowserWindow } from 'electron'
 import type { SettingsStore } from './settings'
 import { setKeypadWindowMode, setWindowAlwaysOnTop } from './window'
+import { notifyTimerFinished } from './alerts'
 import type { Settings } from '../shared/types'
 
 export function registerIpcHandlers(win: BrowserWindow, settingsStore: SettingsStore): void {
@@ -10,9 +11,16 @@ export function registerIpcHandlers(win: BrowserWindow, settingsStore: SettingsS
   ipcMain.removeHandler('window:setAlwaysOnTop')
   ipcMain.removeHandler('window:setOpacity')
   ipcMain.removeHandler('window:setKeypadMode')
+  ipcMain.removeHandler('alert:finished')
 
   ipcMain.handle('settings:get', (): Settings => {
     return settingsStore.getSettings()
+  })
+
+  ipcMain.handle('alert:finished', (): void => {
+    if (!win.isDestroyed()) {
+      notifyTimerFinished(win)
+    }
   })
 
   ipcMain.handle('settings:set', (_event, partial: unknown): Settings => {

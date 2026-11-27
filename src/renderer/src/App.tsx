@@ -1,43 +1,92 @@
-import { useCallback, useEffect, useState, type JSX } from 'react'
+import { useCallback, useEffect, useRef, useState, type JSX } from 'react'
+import { playFinishChime, primeAlertAudio, stopFinishChime } from './audio/chime'
 import { appendKeypadDigits, parseDigits } from './timer/format'
 import { useTimer } from './timer/useTimer'
 import { Controls } from './ui/Controls'
 import { Display } from './ui/Display'
 import { Keypad } from './ui/Keypad'
 import { ProgressBar, ProgressRing } from './ui/ProgressRing'
+import { SettingsPanel } from './ui/SettingsPanel'
+import { themeAttribute } from './settings/model'
+import { DEFAULT_SETTINGS, type Settings } from '../../shared/types'
 
 export default function App(): JSX.Element {
-  const [isPinned, setIsPinned] = useState<boolean>(true)
+  const [settings, setSettings] = useState<Settings | null>(null)
   const [isEditing, setIsEditing] = useState<boolean>(false)
+  const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false)
   const [keypadDigits, setKeypadDigits] = useState<string>('')
 
-  const timer = useTimer()
+  const settingsRef = useRef<Settings | null>(null)
+  useEffect(() => {
+    settingsRef.current = settings
+  }, [settings])
 
-  // Load initial settings (alwaysOnTop) from main process
+  const handleFinish = useCallback((): void => {
+    const current = settingsRef.current ?? DEFAULT_SETTINGS
+    if (current.soundEnabled) {
+      playFinishChime(current.volume)
+    }
+    void window.api?.alertFinished?.().catch((error: unknown) => {
+      console.error('Failed to show finish alert:', error)
+    })
+  }, [])
+
+  const timer = useTimer({ onFinish: handleFinish })
+
+  const isPinned = settings?.alwaysOnTop ?? DEFAULT_SETTINGS.alwaysOnTop
+  const theme = settings?.theme ?? DEFAULT_SETTINGS.theme
+
+  // Load persisted settings from the main process
   useEffect(() => {
     if (!window.api?.getSettings) return
     window.api
       .getSettings()
-      .then((settings) => {
-        setIsPinned(settings.alwaysOnTop)
-      })
+      .then(setSettings)
       .catch(() => {
-        // Retain default pinned state
+        // Retain defaults
       })
   }, [])
 
-  const handleTogglePin = useCallback(async (): Promise<void> => {
-    const nextPin = !isPinned
-    setIsPinned(nextPin)
-    try {
-      if (window.api?.setAlwaysOnTop) {
-        const actual = await window.api.setAlwaysOnTop(nextPin)
-        setIsPinned(actual)
-      }
-    } catch {
-      // Retain optimistic UI state
+  // Theme is a data attribute on <html>; 'system' removes it so tokens.css follows the OS
+  useEffect(() => {
+    const attribute = themeAttribute(theme)
+    if (attribute) {
+      document.documentElement.dataset.theme = attribute
+    } else {
+      delete document.documentElement.dataset.theme
     }
-  }, [isPinned])
+  }, [theme])
+
+  // Browsers only allow audio after a user gesture, so unlock it early
+  useEffect(() => {
+    window.addEventListener('pointerdown', primeAlertAudio)
+    window.addEventListener('keydown', primeAlertAudio)
+    return (): void => {
+      window.removeEventListener('pointerdown', primeAlertAudio)
+      window.removeEventListener('keydown', primeAlertAudio)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (timer.status !== 'finished') {
+      stopFinishChime()
+    }
+  }, [timer.status])
+
+  const handleSettingsChange = useCallback((partial: Partial<Settings>): void => {
+    setSettings((prev) => ({ ...(prev ?? DEFAULT_SETTINGS), ...partial }))
+    if (!window.api?.setSettings) return
+    void window.api
+      .setSettings(partial)
+      .then(setSettings)
+      .catch((error: unknown) => {
+        console.error('Failed to save settings:', error)
+      })
+  }, [])
+
+  const handleTogglePin = useCallback((): void => {
+    handleSettingsChange({ alwaysOnTop: !isPinned })
+  }, [handleSettingsChange, isPinned])
 
   const handleDigit = useCallback((digit: string): void => {
     setIsEditing(true)
@@ -53,6 +102,7 @@ export default function App(): JSX.Element {
     if (parsed.ms === 0) return
     timer.setDuration(parsed.ms)
     setIsEditing(false)
+    setIsSettingsOpen(false)
     setKeypadDigits('')
     timer.start()
   }, [keypadDigits, timer])
@@ -60,6 +110,7 @@ export default function App(): JSX.Element {
   const handleReset = useCallback((): void => {
     timer.reset()
     setIsEditing(false)
+    setIsSettingsOpen(false)
     setKeypadDigits('')
   }, [timer])
 
@@ -94,11 +145,16 @@ export default function App(): JSX.Element {
 
       if (event.key === 'p' || event.key === 'P') {
         event.preventDefault()
-        void handleTogglePin()
+        handleTogglePin()
         return
       }
 
       if (event.key === 'Escape') {
+        if (isSettingsOpen) {
+          event.preventDefault()
+          setIsSettingsOpen(false)
+          return
+        }
         if (isEditing) {
           event.preventDefault()
           setIsEditing(false)
@@ -116,7 +172,10 @@ export default function App(): JSX.Element {
       }
 
       if (timer.status === 'idle') {
-        if (/^[0-9]$/.test(event.key)) {
+        if (event.key === 's' || event.key === 'S') {
+          event.preventDefault()
+          setIsSettingsOpen((open) => !open)
+        } else if (/^[0-9]$/.test(event.key)) {
           event.preventDefault()
           handleDigit(event.key)
         } else if (event.key === 'Backspace' && isEditing) {
@@ -128,7 +187,7 @@ export default function App(): JSX.Element {
 
     window.addEventListener('keydown', handleKeyDown)
     return (): void => window.removeEventListener('keydown', handleKeyDown)
-  }, [handleDigit, handleReset, handleStart, handleTogglePin, isEditing, timer])
+  }, [handleDigit, handleReset, handleStart, handleTogglePin, isEditing, isSettingsOpen, timer])
 
   const isMac = typeof navigator !== 'undefined' && /mac/i.test(navigator.userAgent)
   const isWin = typeof navigator !== 'undefined' && /win/i.test(navigator.userAgent)
@@ -150,16 +209,27 @@ export default function App(): JSX.Element {
         <span className="header-title" style={{ marginLeft: isMac ? 'var(--space-6)' : '0' }}>
           Countdown
         </span>
-        <button
-          type="button"
-          onClick={() => void handleTogglePin()}
-          className={`pin-button no-drag${isPinned ? ' is-pinned' : ''}`}
-          style={{ marginRight: isWin ? '140px' : '0' }}
-          aria-pressed={isPinned}
-          aria-label={isPinned ? 'Always on top: on' : 'Always on top: off'}
-        >
-          {isPinned ? 'Pinned' : 'Pin'}
-        </button>
+        <div className="header-actions" style={{ marginRight: isWin ? '140px' : '0' }}>
+          <button
+            type="button"
+            onClick={() => setIsSettingsOpen((open) => !open)}
+            className="header-button no-drag"
+            disabled={timer.status !== 'idle'}
+            aria-pressed={isSettingsOpen}
+            aria-label="Settings"
+          >
+            Settings
+          </button>
+          <button
+            type="button"
+            onClick={handleTogglePin}
+            className={`pin-button no-drag${isPinned ? ' is-pinned' : ''}`}
+            aria-pressed={isPinned}
+            aria-label={isPinned ? 'Always on top: on' : 'Always on top: off'}
+          >
+            {isPinned ? 'Pinned' : 'Pin'}
+          </button>
+        </div>
       </header>
 
       <main className={`stage${showKeypad ? ' keypad-visible' : ''}`}>
@@ -190,7 +260,15 @@ export default function App(): JSX.Element {
           isFinished={timer.isFinished}
         />
 
-        {showKeypad ? (
+        {showKeypad && isSettingsOpen ? (
+          <div className="keypad-panel">
+            <SettingsPanel
+              settings={settings ?? DEFAULT_SETTINGS}
+              onChange={handleSettingsChange}
+            />
+          </div>
+        ) : null}
+        {showKeypad && !isSettingsOpen ? (
           <div className="keypad-panel">
             <Keypad onDigit={handleDigit} onBackspace={handleBackspace} />
           </div>
