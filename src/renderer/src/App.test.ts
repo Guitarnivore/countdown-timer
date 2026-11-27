@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import App from './App'
 import { useTimer, type UseTimerReturn } from './timer/useTimer'
+import { Display } from './ui/Display'
 
 vi.mock('./timer/useTimer', () => ({ useTimer: vi.fn() }))
 
@@ -36,6 +37,31 @@ describe('timer setup and active layouts', () => {
       expect(markup.includes('aria-label="Duration keypad"')).toBe(status === 'idle')
       expect(markup.includes('stage keypad-visible')).toBe(status === 'idle')
     }
+  })
+
+  it('starts with labelled zeroes and Go disabled', () => {
+    const markup = renderStatus('idle')
+    expect(markup).toContain('Timer set to 00:00:00')
+    expect(markup).toContain('disabled="" aria-label="Go timer"')
+    expect(markup).toContain('>hours</span>')
+    expect(markup).toContain('>minutes</span>')
+    expect(markup).toContain('>seconds</span>')
+    expect(markup).not.toContain('is-entered')
+  })
+
+  it('marks only entered digits and preserves all three setup fields', () => {
+    const markup = renderToStaticMarkup(
+      createElement(Display, {
+        formattedTime: '00:00',
+        status: 'idle',
+        isUrgent: false,
+        isFinished: false,
+        isEditing: true,
+        editDigits: '500'
+      })
+    )
+    expect(markup).toContain('Timer set to 00:05:00')
+    expect(markup.match(/class="is-entered"/g)).toHaveLength(3)
   })
 
   it('marks paused digits for flashing, including during the last ten seconds', () => {

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   type TimerState,
   type TimerStatus,
+  createEmptyTimer,
   createTimer,
   pause as enginePause,
   reset as engineReset,
@@ -54,12 +55,14 @@ export function computeNextTickDelay(remainingMs: number): number {
 }
 
 export function useTimer({
-  initialDurationMs = 5 * 60 * 1000,
+  initialDurationMs,
   now = () => Date.now(),
   onFinish
 }: UseTimerOptions = {}): UseTimerReturn {
-  const [state, setState] = useState<TimerState>(() => createTimer(initialDurationMs))
-  const [remainingMs, setRemainingMs] = useState<number>(initialDurationMs)
+  const [state, setState] = useState<TimerState>(() =>
+    initialDurationMs === undefined ? createEmptyTimer() : createTimer(initialDurationMs)
+  )
+  const [remainingMs, setRemainingMs] = useState<number>(() => state.remainingMs)
 
   const nowRef = useRef(now)
   const onFinishRef = useRef(onFinish)

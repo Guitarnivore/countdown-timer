@@ -99,6 +99,36 @@
   border-radius: var(--radius-control);
 }
 
+.setup-fields {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  width: 100%;
+}
+
+.setup-field {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--ink-muted);
+}
+
+.setup-field-value {
+  font-size: min(11cqw, 60cqh);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.setup-field-value .is-entered {
+  color: var(--ink);
+}
+
+.setup-field-label {
+  font-size: var(--font-size-caption);
+  line-height: 1;
+}
+
 .digits {
   font-family: var(--font-sans);
   font-weight: 350;

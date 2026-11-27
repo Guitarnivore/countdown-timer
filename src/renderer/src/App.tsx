@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type JSX } from 'react'
-import { parseDigits } from './timer/format'
+import { appendKeypadDigits, parseDigits } from './timer/format'
 import { useTimer } from './timer/useTimer'
 import { Controls } from './ui/Controls'
 import { Display } from './ui/Display'
@@ -11,9 +11,7 @@ export default function App(): JSX.Element {
   const [isEditing, setIsEditing] = useState<boolean>(false)
   const [keypadDigits, setKeypadDigits] = useState<string>('')
 
-  const timer = useTimer({
-    initialDurationMs: 5 * 60 * 1000
-  })
+  const timer = useTimer()
 
   // Load initial settings (alwaysOnTop) from main process
   useEffect(() => {
@@ -43,7 +41,7 @@ export default function App(): JSX.Element {
 
   const handleDigit = useCallback((digit: string): void => {
     setIsEditing(true)
-    setKeypadDigits((prev) => (prev.length < 6 ? prev + digit : prev))
+    setKeypadDigits((prev) => appendKeypadDigits(prev, digit))
   }, [])
 
   const handleBackspace = useCallback((): void => {
@@ -52,9 +50,8 @@ export default function App(): JSX.Element {
 
   const handleStart = useCallback((): void => {
     const parsed = parseDigits(keypadDigits)
-    if (parsed.ms > 0) {
-      timer.setDuration(parsed.ms)
-    }
+    if (parsed.ms === 0) return
+    timer.setDuration(parsed.ms)
     setIsEditing(false)
     setKeypadDigits('')
     timer.start()
@@ -121,8 +118,7 @@ export default function App(): JSX.Element {
       if (timer.status === 'idle') {
         if (/^[0-9]$/.test(event.key)) {
           event.preventDefault()
-          setIsEditing(true)
-          setKeypadDigits((prev) => (prev.length < 6 ? prev + event.key : prev))
+          handleDigit(event.key)
         } else if (event.key === 'Backspace' && isEditing) {
           event.preventDefault()
           setKeypadDigits((prev) => prev.slice(0, -1))
@@ -132,13 +128,13 @@ export default function App(): JSX.Element {
 
     window.addEventListener('keydown', handleKeyDown)
     return (): void => window.removeEventListener('keydown', handleKeyDown)
-  }, [handleReset, handleStart, handleTogglePin, isEditing, timer])
+  }, [handleDigit, handleReset, handleStart, handleTogglePin, isEditing, timer])
 
   const isMac = typeof navigator !== 'undefined' && /mac/i.test(navigator.userAgent)
   const isWin = typeof navigator !== 'undefined' && /win/i.test(navigator.userAgent)
 
   const parsedEdit = parseDigits(keypadDigits)
-  const canStart = timer.durationMs > 0 || (isEditing && parsedEdit.ms > 0)
+  const canStart = parsedEdit.ms > 0
 
   const showKeypad = timer.status === 'idle'
 
@@ -179,11 +175,10 @@ export default function App(): JSX.Element {
             isUrgent={timer.isUrgent}
             isFinished={timer.isFinished}
             isEditing={isEditing}
-            editFormatted={parsedEdit.formatted}
+            editDigits={keypadDigits}
             onStartEdit={() => {
               if (timer.status === 'idle') {
                 setIsEditing(true)
-                setKeypadDigits('')
               }
             }}
           />

@@ -1,7 +1,24 @@
 import { describe, expect, it } from 'vitest'
-import { parseDigits } from './format'
+import { appendKeypadDigits, parseDigits } from './format'
 
 describe('Keypad digit shifting (right-to-left fill)', () => {
+  it('ignores leading zeroes but retains zeroes after a significant digit', () => {
+    let digits = ''
+    for (const key of ['0', '00', '0']) {
+      digits = appendKeypadDigits(digits, key)
+      expect(digits).toBe('')
+    }
+    digits = appendKeypadDigits(digits, '5')
+    digits = appendKeypadDigits(digits, '00')
+    expect(digits).toBe('500')
+    expect(parseDigits(digits).ms).toBe(300_000)
+  })
+
+  it('limits the 00 key and subsequent input to six digits', () => {
+    expect(appendKeypadDigits('12345', '00')).toBe('123450')
+    expect(appendKeypadDigits('123456', '7')).toBe('123456')
+  })
+
   it('typing 5 then 0 yields 50 seconds', () => {
     const r = parseDigits('50')
     expect(r.formatted).toBe('00:50')

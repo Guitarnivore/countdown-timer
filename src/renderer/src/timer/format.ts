@@ -11,6 +11,10 @@ export interface ParsedDigits {
 
 const MAX_SECONDS = 99 * 3600 + 59 * 60 + 59
 
+export function appendKeypadDigits(current: string, digits: string): string {
+  return (current + digits).replace(/^0+/, '').slice(0, 6)
+}
+
 export function formatRemaining(remainingMs: number): string {
   // Ceil display rounding ensures 00:01 remains visible until complete, and 00:00 appears only at finish.
   const clampedMs = Math.min(Math.max(0, remainingMs), MAX_DURATION_MS)

@@ -46,11 +46,16 @@ export function createTimer(durationMs: number): TimerState {
   }
 }
 
+export function createEmptyTimer(): TimerState {
+  return { status: 'idle', durationMs: 0, remainingMs: 0, endAtMs: null }
+}
+
 export function start(state: TimerState, nowMs: number): TimerState {
   if (state.status === 'running') {
     return state
   }
 
+  validateDuration(state.durationMs)
   const remainingMs = state.remainingMs > 0 ? state.remainingMs : state.durationMs
   return {
     ...state,

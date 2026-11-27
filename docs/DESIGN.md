@@ -43,7 +43,7 @@ The stage is a size container (`container-type: size`). React sets `--chars` to 
 }
 ```
 
-Tune the `0.62` ratio to Fredoka's tabular digit width. Show hours only when duration is an hour or more (or in full `00h 00m 00s` format during keypad input).
+Tune the `0.62` ratio to Fredoka's tabular digit width. Show hours only when duration is an hour or more during the countdown. Setup always shows three spaced, labelled hours, minutes and seconds fields.
 
 ## Layout by size class (use container queries, not window-size media queries)
 
@@ -53,7 +53,8 @@ Tune the `0.62` ratio to Fredoka's tabular digit width. Show hours only when dur
 Tiny (< 220x110)                 Standard (default 360x220+)               Large (> 560x320)
 +--------------------+           +-------------------------------+         +-----------------------------------+
 | 00:50        [ Go ]|           | [pin]                  [gear] |         | [pin]                      [gear] |
-| keypad on expand/  |           |          00m 50s              |         |            00h 05m 00s            |
+| keypad on expand/  |           |      00     00     50         |         |        00       05       00       |
+|                    |           |    hours  minutes seconds     |         |      hours   minutes   seconds    |
 | popover or typing  |           |    [1] [2] [3]                |         |       [ 1 ]  [ 2 ]  [ 3 ]         |
 +--------------------+           |    [4] [5] [6]                |         |       [ 4 ]  [ 5 ]  [ 6 ]         |
                                  |    [7] [8] [9]                |         |       [ 7 ]  [ 8 ]  [ 9 ]         |
@@ -75,9 +76,9 @@ Tiny (< 220x110)                 Standard (default 360x220+)               Large
                                  +-------------------------------+         +-----------------------------------+
 ```
 
-- Setup (Idle): Numeric keypad (1-9, 0, 00, Backspace/Clear) lets user enter duration starting with seconds, then minutes, then hours (e.g. typing `5-0` gives 50 seconds; `5-0-0` gives 5 minutes). No presets. The primary action is a prominent "Go" button.
+- Setup (Idle): Start with grey zeroes in three labelled fields. Entered digits use the normal text colour; leading zeroes are ignored. The keypad (1-9, 0, 00, Backspace) and keyboard fill seconds, then minutes, then hours (e.g. `5-0` gives 50 seconds; `5-0-0` gives 5 minutes). Go is disabled until the duration is nonzero.
 - Running / Paused: The keypad completely hides upon pressing "Go", freeing the full stage for large, clean digits and the progress indicator.
-- Reset / Edit: Pressing "Reset" from paused/finished returns to the Idle setup screen and brings back the keypad.
+- Reset / Edit: Pressing "Reset" clears the entry, returns to the Idle setup screen and brings back the keypad.
 - Tiny mode: Displays digits and a compact "Go" or control strip; typing digits via physical keyboard shifts time directly.
 - Progress: ring in Standard, full-width line in Tiny/Large. Colour = `--accent` while running.
 
@@ -85,7 +86,7 @@ Tiny (< 220x110)                 Standard (default 360x220+)               Large
 
 | State     | Digits colour | Keypad  | Primary Button | Notes                                                                   |
 | --------- | ------------- | ------- | -------------- | ----------------------------------------------------------------------- |
-| Idle      | `--ink`       | Visible | "Go"           | Google Clock keypad active; accepts 0-9; shifts seconds->minutes->hours |
+| Idle      | Mixed         | Visible | "Go"           | Grey placeholders, normal-colour entered digits; Go disabled when zero   |
 | Running   | `--ink`       | Hidden  | "Pause"        | Full window dedicated to digits and progress ring/bar                   |
 | Paused    | `--ink-muted` | Hidden  | "Resume"       | Digits flash slowly; "Reset" returns to the idle keypad                 |
 | Last 10 s | `--urgent`    | Hidden  | "Pause"        | Calm urgent indicator without abrupt flashing                           |

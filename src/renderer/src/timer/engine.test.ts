@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
+  createEmptyTimer,
   createTimer,
   getRemainingMs,
   isFinished,
@@ -13,6 +14,12 @@ import {
 import { formatRemaining, parseDigits } from './format'
 
 describe('Timer Engine', () => {
+  it('starts empty and rejects starting without a duration', () => {
+    const timer = createEmptyTimer()
+    expect(timer).toEqual({ status: 'idle', durationMs: 0, remainingMs: 0, endAtMs: null })
+    expect(() => start(timer, 0)).toThrow(RangeError)
+  })
+
   it('start sets endAtMs = now + remainingMs; status becomes running', () => {
     const timer = createTimer(60000)
     const started = start(timer, 1000)

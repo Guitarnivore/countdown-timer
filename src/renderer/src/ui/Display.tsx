@@ -7,7 +7,7 @@ export interface DisplayProps {
   isUrgent: boolean
   isFinished: boolean
   isEditing: boolean
-  editFormatted?: string
+  editDigits: string
   onStartEdit?: () => void
 }
 
@@ -17,10 +17,14 @@ export function Display({
   isUrgent,
   isFinished,
   isEditing,
-  editFormatted,
+  editDigits,
   onStartEdit
 }: DisplayProps): JSX.Element {
-  const displayString = isEditing && editFormatted ? editFormatted : formattedTime
+  const paddedDigits = editDigits.padStart(6, '0')
+  const displayString =
+    status === 'idle'
+      ? `${paddedDigits.slice(0, 2)}:${paddedDigits.slice(2, 4)}:${paddedDigits.slice(4, 6)}`
+      : formattedTime
   const charsCount = displayString.length
 
   const styleVariables = {
@@ -51,9 +55,36 @@ export function Display({
           : `Remaining time: ${displayString}`
       }
     >
-      <span className="digits" aria-hidden="true">
-        {displayString}
-      </span>
+      {status === 'idle' ? (
+        <span className="setup-fields" aria-hidden="true">
+          {['hours', 'minutes', 'seconds'].map((label, fieldIndex) => (
+            <span className="setup-field" key={label}>
+              <span className="setup-field-value">
+                {paddedDigits
+                  .slice(fieldIndex * 2, fieldIndex * 2 + 2)
+                  .split('')
+                  .map((digit, digitIndex) => (
+                    <span
+                      className={
+                        fieldIndex * 2 + digitIndex >= 6 - editDigits.length
+                          ? 'is-entered'
+                          : undefined
+                      }
+                      key={digitIndex}
+                    >
+                      {digit}
+                    </span>
+                  ))}
+              </span>
+              <span className="setup-field-label">{label}</span>
+            </span>
+          ))}
+        </span>
+      ) : (
+        <span className="digits" aria-hidden="true">
+          {displayString}
+        </span>
+      )}
       {isFinished && <span className="finished-badge">Time&apos;s up</span>}
     </div>
   )
