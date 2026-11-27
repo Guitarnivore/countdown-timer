@@ -113,6 +113,7 @@
 
 .is-paused .digits {
   color: var(--ink-muted);
+  animation: pause-flash 1.6s ease-in-out infinite;
 }
 
 .is-urgent .digits {
@@ -542,6 +543,12 @@ font-size: min(calc(100cqw / (var(--chars) * 0.62)), 62cqh);
   margin: 0 auto;
 }
 
+@keyframes pause-flash {
+  50% {
+    opacity: 0.55;
+  }
+}
+
 /* Subtle single pulse animation for finish state */
 @keyframes subtle-pulse {
   0% {
@@ -557,7 +564,8 @@ font-size: min(calc(100cqw / (var(--chars) * 0.62)), 62cqh);
 
 /* Respect user's motion preferences */
 @media (prefers-reduced-motion: reduce) {
-  .is-finished .digits {
+  .is-finished .digits,
+  .is-paused .digits {
     animation: none;
   }
 

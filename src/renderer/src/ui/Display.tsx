@@ -27,21 +27,13 @@ export function Display({
     '--chars': charsCount
   } as CSSProperties
 
-  const stateClass = isFinished
-    ? 'is-finished'
-    : isUrgent
-      ? 'is-urgent'
-      : status === 'paused'
-        ? 'is-paused'
-        : status === 'running'
-          ? 'is-running'
-          : 'is-idle'
+  const stateClass = `is-${status}${isUrgent && !isFinished ? ' is-urgent' : ''}`
 
   return (
     <div
       className={`display-container ${stateClass}${isEditing ? ' is-editing' : ''}`}
       style={styleVariables}
-      onClick={status === 'idle' || status === 'paused' ? onStartEdit : undefined}
+      onClick={status === 'idle' ? onStartEdit : undefined}
       onKeyDown={
         status === 'idle'
           ? (event) => {

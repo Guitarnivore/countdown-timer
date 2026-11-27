@@ -118,7 +118,7 @@ export default function App(): JSX.Element {
         return
       }
 
-      if (timer.status !== 'running') {
+      if (timer.status === 'idle') {
         if (/^[0-9]$/.test(event.key)) {
           event.preventDefault()
           setIsEditing(true)
@@ -140,7 +140,7 @@ export default function App(): JSX.Element {
   const parsedEdit = parseDigits(keypadDigits)
   const canStart = timer.durationMs > 0 || (isEditing && parsedEdit.ms > 0)
 
-  const showKeypad = timer.status !== 'running'
+  const showKeypad = timer.status === 'idle'
 
   useEffect(() => {
     void window.api.setKeypadMode(showKeypad).catch((error: unknown) => {
@@ -181,7 +181,7 @@ export default function App(): JSX.Element {
             isEditing={isEditing}
             editFormatted={parsedEdit.formatted}
             onStartEdit={() => {
-              if (timer.status !== 'running' && timer.status !== 'finished') {
+              if (timer.status === 'idle') {
                 setIsEditing(true)
                 setKeypadDigits('')
               }

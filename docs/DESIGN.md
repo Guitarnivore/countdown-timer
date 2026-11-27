@@ -87,13 +87,13 @@ Tiny (< 220x110)                 Standard (default 360x220+)               Large
 | --------- | ------------- | ------- | -------------- | ----------------------------------------------------------------------- |
 | Idle      | `--ink`       | Visible | "Go"           | Google Clock keypad active; accepts 0-9; shifts seconds->minutes->hours |
 | Running   | `--ink`       | Hidden  | "Pause"        | Full window dedicated to digits and progress ring/bar                   |
-| Paused    | `--ink-muted` | Hidden  | "Resume"       | Secondary button: "Reset" (returns to Idle keypad)                      |
+| Paused    | `--ink-muted` | Hidden  | "Resume"       | Digits flash slowly; "Reset" returns to the idle keypad                 |
 | Last 10 s | `--urgent`    | Hidden  | "Pause"        | Calm urgent indicator without abrupt flashing                           |
 | Finished  | `--urgent`    | Hidden  | "Restart"      | Shows 00:00 and "Time's up"; secondary "Reset" restores keypad          |
 
 ## Motion
 
-Only motion that answers an action (button press feedback about 120 ms, state colour change about 200 ms ease). No entrance animations, no looping decoration. Respect `prefers-reduced-motion`: remove pulses and transitions.
+Only motion that answers an action (button press feedback about 120 ms, state colour change about 200 ms ease). Paused digits flash slowly as a state indicator; no entrance animations or looping decoration. Respect `prefers-reduced-motion`: remove flashing, pulses and transitions.
 
 ## Accessibility
 
