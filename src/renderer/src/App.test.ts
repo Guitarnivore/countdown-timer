@@ -4,6 +4,8 @@ import { describe, expect, it, vi } from 'vitest'
 import App from './App'
 import { useTimer, type UseTimerReturn } from './timer/useTimer'
 import { Display } from './ui/Display'
+import { SettingsPanel } from './ui/SettingsPanel'
+import { DEFAULT_SETTINGS } from '../../shared/types'
 
 vi.mock('./timer/useTimer', () => ({ useTimer: vi.fn() }))
 
@@ -69,5 +71,27 @@ describe('timer setup and active layouts', () => {
     expect(renderStatus('paused', true)).toContain('display-container is-paused is-urgent')
     expect(renderStatus('running')).not.toContain('is-paused')
     expect(renderStatus('finished', true)).not.toContain('is-paused')
+  })
+
+  it('keeps second-by-second timer updates out of live announcements', () => {
+    const markup = renderStatus('running')
+    expect(markup).toContain('role="timer"')
+    expect(markup).toContain('aria-live="off"')
+    expect(markup.match(/aria-live="polite"/g)).toHaveLength(1)
+  })
+
+  it('shows the full-screen floating option only in the Mac settings panel', () => {
+    const windowsMarkup = renderToStaticMarkup(
+      createElement(SettingsPanel, { settings: DEFAULT_SETTINGS, onChange: vi.fn() })
+    )
+    const macMarkup = renderToStaticMarkup(
+      createElement(SettingsPanel, {
+        settings: DEFAULT_SETTINGS,
+        onChange: vi.fn(),
+        showMacSettings: true
+      })
+    )
+    expect(windowsMarkup).not.toContain('Float above full-screen apps (Mac)')
+    expect(macMarkup).toContain('Float above full-screen apps (Mac)')
   })
 })

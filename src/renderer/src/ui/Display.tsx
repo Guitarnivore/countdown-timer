@@ -49,6 +49,7 @@ export function Display({
       }
       role={status === 'idle' ? 'button' : 'timer'}
       tabIndex={status === 'idle' ? 0 : undefined}
+      aria-live={status === 'idle' ? undefined : 'off'}
       aria-label={
         status === 'idle'
           ? `Timer set to ${displayString}. Click or type to edit.`

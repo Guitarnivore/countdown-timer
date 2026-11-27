@@ -14,6 +14,7 @@ const DEFAULT_WIDTH = 360
 const DEFAULT_HEIGHT = 450
 const MIN_WIDTH = 120
 const MIN_HEIGHT = 72
+const floatingWindows = new WeakSet<BrowserWindow>()
 
 export function computeInitialBounds(savedBounds: Rectangle | undefined): Rectangle {
   const allDisplays = screen.getAllDisplays().map((d) => d.bounds)
@@ -38,6 +39,29 @@ export function setWindowAlwaysOnTop(win: BrowserWindow, alwaysOnTop: boolean): 
   } else {
     win.setAlwaysOnTop(false)
   }
+}
+
+export function setWindowPresentation(
+  win: BrowserWindow,
+  alwaysOnTop: boolean,
+  floatAboveFullscreen: boolean
+): void {
+  const shouldFloatAboveFullscreen = process.platform === 'darwin' && floatAboveFullscreen
+  if (shouldFloatAboveFullscreen) {
+    setWindowAlwaysOnTop(win, true)
+    if (!floatingWindows.has(win)) {
+      win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
+      floatingWindows.add(win)
+    }
+    return
+  }
+
+  if (process.platform === 'darwin' && floatingWindows.has(win)) {
+    win.setVisibleOnAllWorkspaces(false)
+    floatingWindows.delete(win)
+  }
+
+  setWindowAlwaysOnTop(win, alwaysOnTop)
 }
 
 export function setKeypadWindowMode(win: BrowserWindow, enabled: boolean): void {
@@ -99,8 +123,8 @@ export function createTimerWindow(settingsStore: SettingsStore): BrowserWindow {
     }
   })
 
-  // Apply alwaysOnTop and initial opacity
-  setWindowAlwaysOnTop(win, settings.alwaysOnTop)
+  // Apply window presentation and initial opacity
+  setWindowPresentation(win, settings.alwaysOnTop, settings.floatAboveFullscreen)
   if (settings.opacity >= 0.3 && settings.opacity <= 1) {
     win.setOpacity(settings.opacity)
   }

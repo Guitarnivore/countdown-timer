@@ -1,6 +1,6 @@
 import { ipcMain, type BrowserWindow } from 'electron'
 import type { SettingsStore } from './settings'
-import { setKeypadWindowMode, setWindowAlwaysOnTop } from './window'
+import { setKeypadWindowMode, setWindowPresentation } from './window'
 import { notifyTimerFinished } from './alerts'
 import type { Settings } from '../shared/types'
 
@@ -12,6 +12,7 @@ export function registerIpcHandlers(win: BrowserWindow, settingsStore: SettingsS
   ipcMain.removeHandler('window:setOpacity')
   ipcMain.removeHandler('window:setKeypadMode')
   ipcMain.removeHandler('alert:finished')
+  ipcMain.removeAllListeners('progress:set')
 
   ipcMain.handle('settings:get', (): Settings => {
     return settingsStore.getSettings()
@@ -31,8 +32,12 @@ export function registerIpcHandlers(win: BrowserWindow, settingsStore: SettingsS
     const updated = settingsStore.updateSettings(partial as Partial<Settings>)
     const candidate = partial as Record<string, unknown>
 
-    if (typeof candidate.alwaysOnTop === 'boolean' && !win.isDestroyed()) {
-      setWindowAlwaysOnTop(win, candidate.alwaysOnTop)
+    if (
+      (typeof candidate.alwaysOnTop === 'boolean' ||
+        typeof candidate.floatAboveFullscreen === 'boolean') &&
+      !win.isDestroyed()
+    ) {
+      setWindowPresentation(win, updated.alwaysOnTop, updated.floatAboveFullscreen)
     }
 
     if (
@@ -51,10 +56,10 @@ export function registerIpcHandlers(win: BrowserWindow, settingsStore: SettingsS
       throw new TypeError('Expected boolean for alwaysOnTop')
     }
 
+    const updated = settingsStore.updateSettings({ alwaysOnTop })
     if (!win.isDestroyed()) {
-      setWindowAlwaysOnTop(win, alwaysOnTop)
+      setWindowPresentation(win, updated.alwaysOnTop, updated.floatAboveFullscreen)
     }
-    settingsStore.updateSettings({ alwaysOnTop })
     return alwaysOnTop
   })
 
@@ -77,5 +82,20 @@ export function registerIpcHandlers(win: BrowserWindow, settingsStore: SettingsS
     }
 
     setKeypadWindowMode(win, enabled)
+  })
+
+  ipcMain.on('progress:set', (_event, progress: unknown): void => {
+    if (
+      typeof progress !== 'number' ||
+      !Number.isFinite(progress) ||
+      (progress !== -1 && (progress < 0 || progress > 1))
+    ) {
+      console.error('Rejected invalid progress:set payload')
+      return
+    }
+
+    if (!win.isDestroyed()) {
+      win.setProgressBar(progress)
+    }
   })
 }

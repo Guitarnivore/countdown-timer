@@ -15,8 +15,10 @@ export default function App(): JSX.Element {
   const [isEditing, setIsEditing] = useState<boolean>(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false)
   const [keypadDigits, setKeypadDigits] = useState<string>('')
+  const [announcement, setAnnouncement] = useState<string>('')
 
   const settingsRef = useRef<Settings | null>(null)
+  const announcementStateRef = useRef({ status: 'idle', seconds: 0 })
   useEffect(() => {
     settingsRef.current = settings
   }, [settings])
@@ -33,6 +35,38 @@ export default function App(): JSX.Element {
 
   const timer = useTimer({ onFinish: handleFinish })
 
+  useEffect(() => {
+    const previous = announcementStateRef.current
+    const seconds = Math.ceil(Math.max(0, timer.remainingMs) / 1000)
+    let message = ''
+
+    if (timer.status === 'finished' && previous.status !== 'finished') {
+      message = "Time's up."
+    } else if (timer.status === 'running') {
+      if (previous.status !== 'running') {
+        message = `${previous.status === 'paused' ? 'Timer resumed' : 'Timer started'}. ${timer.formattedTime} remaining.`
+      } else if (seconds < previous.seconds) {
+        const previousMinute = Math.floor((previous.seconds - 1) / 60)
+        const currentMinute = Math.floor((seconds - 1) / 60)
+        if (seconds > 0 && previousMinute > currentMinute) {
+          const minutes = Math.ceil(seconds / 60)
+          message = `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} remaining.`
+        } else if (previous.seconds > 10 && seconds <= 10) {
+          message = '10 seconds remaining.'
+        }
+      }
+    }
+
+    announcementStateRef.current = { status: timer.status, seconds }
+    if (message) setAnnouncement(message)
+  }, [timer.formattedTime, timer.remainingMs, timer.status])
+
+  useEffect(() => {
+    if (!window.api?.setProgress) return
+    const isActive = timer.status === 'running' || timer.status === 'paused'
+    window.api.setProgress(isActive ? 1 - timer.progress : -1)
+  }, [timer.progress, timer.status])
+
   const isPinned = settings?.alwaysOnTop ?? DEFAULT_SETTINGS.alwaysOnTop
   const theme = settings?.theme ?? DEFAULT_SETTINGS.theme
 
@@ -42,8 +76,8 @@ export default function App(): JSX.Element {
     window.api
       .getSettings()
       .then(setSettings)
-      .catch(() => {
-        // Retain defaults
+      .catch((error: unknown) => {
+        console.error('Failed to load settings:', error)
       })
   }, [])
 
@@ -232,7 +266,9 @@ export default function App(): JSX.Element {
         </div>
       </header>
 
-      <main className={`stage${showKeypad ? ' keypad-visible' : ''}`}>
+      <main
+        className={`stage${showKeypad ? ' keypad-visible' : ''}${isSettingsOpen ? ' settings-open' : ''}`}
+      >
         <div className="ring-stage">
           <ProgressRing
             progress={timer.progress}
@@ -265,6 +301,7 @@ export default function App(): JSX.Element {
             <SettingsPanel
               settings={settings ?? DEFAULT_SETTINGS}
               onChange={handleSettingsChange}
+              showMacSettings={isMac}
             />
           </div>
         ) : null}
@@ -295,6 +332,9 @@ export default function App(): JSX.Element {
           onRestart={timer.restart}
         />
       </main>
+      <p className="visually-hidden" aria-live="polite" aria-atomic="true">
+        {announcement}
+      </p>
     </div>
   )
 }

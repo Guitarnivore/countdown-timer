@@ -11,6 +11,7 @@ const api: TimerAPI = {
     ipcRenderer.invoke('window:setOpacity', opacity),
   setKeypadMode: (enabled: boolean): Promise<void> =>
     ipcRenderer.invoke('window:setKeypadMode', enabled),
+  setProgress: (progress: number): void => ipcRenderer.send('progress:set', progress),
   alertFinished: (): Promise<void> => ipcRenderer.invoke('alert:finished')
 }
 

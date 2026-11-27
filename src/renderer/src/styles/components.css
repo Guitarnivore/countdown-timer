@@ -543,10 +543,20 @@
   }
 
   .tiny-controls-strip .control-button {
-    min-width: 28px;
-    min-height: 28px;
+    min-width: 32px;
+    min-height: 32px;
     padding: var(--space-1) var(--space-2);
     font-size: 11px;
+  }
+
+  .stage.keypad-visible:not(.settings-open) .keypad-panel {
+    display: none;
+  }
+
+  .stage.keypad-visible.settings-open .keypad-panel {
+    display: block;
+    max-height: 100%;
+    overflow-y: auto;
   }
 
   .app-shell:hover .tiny-controls-strip,
@@ -695,17 +705,10 @@
 
 /* Respect user's motion preferences */
 @media (prefers-reduced-motion: reduce) {
-  .is-finished .digits,
-  .is-paused .digits {
-    animation: none;
-  }
-
-  .progress-ring-indicator,
-  .progress-bar-fill,
-  .digits,
-  .control-button,
-  .preset-button,
-  .pin-button {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
     transition: none !important;
   }
 }

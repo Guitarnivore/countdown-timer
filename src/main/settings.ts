@@ -68,14 +68,6 @@ export function sanitizeSettings(raw: unknown): Settings {
       ? Math.max(0.3, Math.min(1, candidate.opacity))
       : DEFAULT_SETTINGS.opacity
 
-  const lastDurationMs =
-    typeof candidate.lastDurationMs === 'number' &&
-    Number.isFinite(candidate.lastDurationMs) &&
-    candidate.lastDurationMs > 0 &&
-    candidate.lastDurationMs <= 99 * 3600 * 1000 + 59 * 60 * 1000 + 59 * 1000
-      ? Math.floor(candidate.lastDurationMs)
-      : DEFAULT_SETTINGS.lastDurationMs
-
   let bounds: Rectangle | undefined = undefined
   if (candidate.bounds && typeof candidate.bounds === 'object') {
     const b = candidate.bounds as Record<string, unknown>
@@ -108,7 +100,6 @@ export function sanitizeSettings(raw: unknown): Settings {
     soundEnabled,
     volume,
     opacity,
-    lastDurationMs,
     bounds
   }
 }

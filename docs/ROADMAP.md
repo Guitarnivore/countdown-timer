@@ -108,6 +108,8 @@ Implement: compact hover-reveal controls in Tiny mode, taskbar/dock progress via
 Then review your own work against the Accessibility section of DESIGN.md and list anything that fails.
 ```
 
+The last-duration memory request above is superseded: duration entry now starts empty on every launch.
+
 ---
 
 ## Phase 6: Package and cross-platform QA

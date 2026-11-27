@@ -28,7 +28,6 @@ A small, polished countdown timer that stays visible above other windows while t
 - Window opacity setting (30-100%).
 - Progress in the Windows taskbar and macOS Dock icon.
 - Optional: float above full-screen apps on macOS (setting, default off).
-- Remember the last used duration.
 
 ### Could have (post-MVP, not in the roadmap's core phases)
 
@@ -43,7 +42,7 @@ Accounts, cloud sync, mobile apps, Linux support (may work, untested), multiple 
 - App launches on Windows 10/11 and a current macOS and passes the TESTING.md checklist on both.
 - A 10-minute timer ends within 0.5 s of a reference clock on both OSes.
 - Window can be resized from 120x72 up to a full screen with no clipped or overlapping UI.
-- Always-on-top state, theme, window bounds and last duration survive a restart.
+- Always-on-top state, theme and window bounds survive a restart. Duration entry starts empty on every launch.
 - Keyboard-only use works for start, pause, reset, pin, and editing the duration.
 - Keypad input handles right-fill (50 -> 50s, 500 -> 5m) without presets; keypad hides after Go is pressed.
 - No console errors in normal use; `npm run typecheck`, `npm test`, `npm run lint` all pass.

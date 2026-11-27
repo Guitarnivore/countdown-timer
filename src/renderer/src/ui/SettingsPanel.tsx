@@ -5,6 +5,7 @@ import { sliderPercentToUnit, unitToSliderPercent } from '../settings/model'
 export interface SettingsPanelProps {
   settings: Settings
   onChange: (partial: Partial<Settings>) => void
+  showMacSettings?: boolean
 }
 
 const THEME_OPTIONS: { value: Theme; label: string }[] = [
@@ -13,7 +14,11 @@ const THEME_OPTIONS: { value: Theme; label: string }[] = [
   { value: 'dark', label: 'Dark' }
 ]
 
-export function SettingsPanel({ settings, onChange }: SettingsPanelProps): JSX.Element {
+export function SettingsPanel({
+  settings,
+  onChange,
+  showMacSettings = false
+}: SettingsPanelProps): JSX.Element {
   return (
     <div className="settings-panel" role="group" aria-label="Settings">
       <fieldset className="settings-row settings-theme">
@@ -79,6 +84,21 @@ export function SettingsPanel({ settings, onChange }: SettingsPanelProps): JSX.E
           onChange={(event) => onChange({ alwaysOnTop: event.target.checked })}
         />
       </div>
+
+      {showMacSettings ? (
+        <div className="settings-row">
+          <label className="settings-label no-drag" htmlFor="settings-float-fullscreen">
+            Float above full-screen apps (Mac)
+          </label>
+          <input
+            id="settings-float-fullscreen"
+            className="no-drag"
+            type="checkbox"
+            checked={settings.floatAboveFullscreen}
+            onChange={(event) => onChange({ floatAboveFullscreen: event.target.checked })}
+          />
+        </div>
+      ) : null}
 
       <div className="settings-row">
         <label className="settings-label no-drag" htmlFor="settings-opacity">

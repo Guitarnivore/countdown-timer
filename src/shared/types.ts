@@ -15,7 +15,6 @@ export interface Settings {
   soundEnabled: boolean
   volume: number
   opacity: number
-  lastDurationMs: number
   bounds?: Rectangle
 }
 
@@ -25,6 +24,7 @@ export interface TimerAPI {
   setAlwaysOnTop: (alwaysOnTop: boolean) => Promise<boolean>
   setOpacity: (opacity: number) => Promise<number>
   setKeypadMode: (enabled: boolean) => Promise<void>
+  setProgress: (progress: number) => void
   alertFinished: () => Promise<void>
 }
 
@@ -36,6 +36,5 @@ export const DEFAULT_SETTINGS: Settings = {
   soundEnabled: true,
   volume: 0.8,
   opacity: 1,
-  lastDurationMs: 5 * 60 * 1000,
   bounds: undefined
 }

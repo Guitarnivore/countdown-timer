@@ -70,7 +70,7 @@ isFinished(state, nowMs): boolean
 | `window:setAlwaysOnTop` | invoke    | `boolean`                       | also persists (not used by renderer)                                        |
 | `window:setOpacity`     | invoke    | `number` 0.3 to 1               | (not used by renderer)                                                      |
 | `alert:finished`        | invoke    | none                            | notification + attention                                                    |
-| `progress:set`          | send      | `number` 0 to 1, or -1 to clear | taskbar/dock                                                                |
+| `progress:set`          | send      | completion fraction 0 to 1, or -1 to clear | taskbar/dock; renderer sends elapsed fraction while running/paused |
 
 Theme is not sent over IPC. The renderer sets `data-theme` on `<html>` from `settings.theme`; `system` removes the attribute so `tokens.css` follows the OS via `prefers-color-scheme`.
 
@@ -82,11 +82,11 @@ alwaysOnTop: boolean (default true)
 floatAboveFullscreen: boolean (default false, macOS-focused)
 soundEnabled: boolean, volume: 0..1
 opacity: 0.3..1
-lastDurationMs: number
 bounds: { x, y, width, height }
 ```
 
 Read defensively: missing or corrupt file falls back to defaults; unknown keys are ignored; write atomically (write temp file, rename).
+On every launch, the duration entry is empty and Go is disabled. Durations are not saved across launches; legacy `lastDurationMs` values are ignored. Restart still reuses the current timer's duration within the session.
 
 ## Window behaviour
 

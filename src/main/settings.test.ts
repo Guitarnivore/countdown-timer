@@ -61,24 +61,28 @@ describe('settings module', () => {
       expect(sanitizeSettings('string')).toEqual(DEFAULT_SETTINGS)
     })
 
+    it('ignores a duration saved by an older version', () => {
+      expect(sanitizeSettings({ lastDurationMs: 300_000 })).toEqual(DEFAULT_SETTINGS)
+    })
+
     it('preserves valid settings and strips unknown keys', () => {
       const custom = {
         theme: 'dark',
         alwaysOnTop: false,
+        floatAboveFullscreen: true,
         soundEnabled: false,
         volume: 0.5,
         opacity: 0.8,
-        lastDurationMs: 60000,
         bounds: { x: 50, y: 60, width: 360, height: 220 },
         extraGarbage: 'should-be-removed'
       }
       const sanitized = sanitizeSettings(custom)
       expect(sanitized.theme).toBe('dark')
       expect(sanitized.alwaysOnTop).toBe(false)
+      expect(sanitized.floatAboveFullscreen).toBe(true)
       expect(sanitized.soundEnabled).toBe(false)
       expect(sanitized.volume).toBe(0.5)
       expect(sanitized.opacity).toBe(0.8)
-      expect(sanitized.lastDurationMs).toBe(60000)
       expect(sanitized.bounds).toEqual({ x: 50, y: 60, width: 360, height: 220 })
       expect((sanitized as unknown as Record<string, unknown>).extraGarbage).toBeUndefined()
     })
@@ -88,13 +92,11 @@ describe('settings module', () => {
         theme: 'invalid-theme',
         volume: 2.5,
         opacity: 0.1,
-        lastDurationMs: -50,
         bounds: { x: 0, y: 0, width: 10, height: 10 }
       })
       expect(sanitized.theme).toBe('system')
       expect(sanitized.volume).toBe(1)
       expect(sanitized.opacity).toBe(0.3)
-      expect(sanitized.lastDurationMs).toBe(DEFAULT_SETTINGS.lastDurationMs)
       expect(sanitized.bounds).toBeUndefined()
     })
   })
@@ -132,6 +134,16 @@ describe('settings module', () => {
       const content = JSON.parse(readFileSync(testFilePath, 'utf-8'))
       expect(content.theme).toBe('dark')
       expect(content.alwaysOnTop).toBe(false)
+    })
+
+    it('preserves other settings and removes a legacy duration when saved', () => {
+      writeFileSync(testFilePath, JSON.stringify({ theme: 'dark', lastDurationMs: 300_000 }))
+      const store = new SettingsStore(testFilePath)
+      expect(store.getSettings().theme).toBe('dark')
+      store.flush()
+      const saved = JSON.parse(readFileSync(testFilePath, 'utf-8'))
+      expect(saved.theme).toBe('dark')
+      expect(saved).not.toHaveProperty('lastDurationMs')
     })
   })
 })
